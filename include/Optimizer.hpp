@@ -19,4 +19,8 @@ public:
 	virtual void initialize() = 0;
 	virtual void optimize() = 0;
 	virtual void print_results(std::ostream& out = std::cout) = 0;
+
+	// getters
+	double get_global_best_value() const { return global_best_value_; }
+	const RealVector<dim>& get_global_best_position() const { return global_best_position_; }
 };
