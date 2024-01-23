@@ -18,6 +18,7 @@ using namespace type_traits;
  * @param velocity_ the velocity of the particle in the search space
  * @param best_position_ the best position ever reached by the particle
  * @param best_value_ the value of the fitness function in the global best position
+ * @param best_constraint_violation_ the total constraint violation in the global best position
  * @param omega_s_ the starting value of the inertia weight
  * @param omega_f_ the final value of the inertia weight
  * @param phi1_s_ the starting value of the cognitive parameter
@@ -104,6 +105,15 @@ public:
 	 * @return double total constraint violation
 	 */
 	double get_constraint_violation() const { return constraint_violation_; }
+
+	/**
+	 * @brief Check if the particle is better according to the feasibility-based rule
+	 *
+	 * @param other the particle to be compared with
+	 * @return true if the particle is better than the other
+	 * @return false otherwise
+	 */
+	bool is_better_than(const Particle<dim> &other) const;
 
 private:
 	/**

@@ -1,4 +1,5 @@
 #include "SASPSO/Particle.hpp"
+#include "Particle.hpp"
 
 using namespace type_traits;
 
@@ -94,6 +95,12 @@ void Particle<dim>::print() const
     std::cout << "Best value:\t" << best_value_ << std::endl;
 
     std::cout << "Best constraint violation:\t" << best_constraint_violation_ << std::endl;
+}
+
+template <size_t dim>
+bool Particle<dim>::is_better_than(const Particle<dim> &other) const
+{
+	return false;
 }
 
 template <size_t dim>
