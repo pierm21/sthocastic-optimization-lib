@@ -40,6 +40,7 @@ private:
 
 	RealVector<dim> best_position_;
 	double best_value_;
+	double best_constraint_violation_;
 
 	double omega_s_, omega_f_;
 	double phi1_s_, phi1_f_;
@@ -51,7 +52,7 @@ public:
 	 *
 	 * @param problem shared pointer to the problem to be optimized
 	 */
-	Particle(const std::shared_ptr<Problem> &problem,
+	Particle(const std::shared_ptr<Problem<dim>> &problem,
 			 const std::shared_ptr<std::mt19937> &random_generator,
 			 const double omega_s, const double omega_f,
 			 const double phi1_s, const double phi1_f,
@@ -73,7 +74,7 @@ public:
 	/**
 	 * @brief Update velocity, position and total constraint violation of the particle at current iteration
 	 */
-	void update(const RealVector<dim> &global_best_position, double iteration, double max_iter);
+	void update(const RealVector<dim> &global_best_position, int iteration, int max_iter);
 
 	void print() const;
 
@@ -106,11 +107,21 @@ public:
 
 private:
 	/**
-	 * @brief utility to compute the total constraint violaton at the current position
-	 *
-	 * @return double total constraint violation
+	 * @brief Utility to update the total constraint violaton at the current position
 	 */
-	double update_constraint_violation();
+	void update_constraint_violation();
+
+	/**
+	 * @brief Utility to get the best position between the given two, following the feasibility-based rule
+	 *
+	 * @param value1 the fitness value on first position
+	 * @param value2 the fitness value on second position
+	 * @param viol1 the constraint violation on the first position
+	 * @param viol2 the constraint violation on the second position
+	 * @return true if the first position is better than the second one
+	 * @return false otherwise
+	 */
+	bool feasibility_rule(double value1, double value2, double viol1, double viol2) const;
 };
 
 #include "SASPSO/Particle.cpp"

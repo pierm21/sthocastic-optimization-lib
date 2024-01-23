@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Optimizer.hpp"
+#include "Particle.hpp"
 
 template <std::size_t dim>
 class SASPSO : public Optimizer<dim> {
