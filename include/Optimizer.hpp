@@ -9,8 +9,6 @@ template <size_t dim>
 class Optimizer {
 protected:
 	Problem<dim> problem_;
-	double global_best_value_;
-	RealVector<dim> global_best_position_;
 
 public:
 	Optimizer() = delete;
@@ -21,6 +19,7 @@ public:
 	virtual void print_results(std::ostream& out = std::cout) = 0;
 
 	// getters
-	double get_global_best_value() const { return global_best_value_; }
-	const RealVector<dim>& get_global_best_position() const { return global_best_position_; }
+	virtual double get_global_best_value() = 0;
+	virtual const RealVector<dim>& get_global_best_position() = 0;
+	virtual bool is_feasible_solution() = 0;
 };

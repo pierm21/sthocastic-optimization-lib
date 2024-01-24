@@ -25,21 +25,39 @@ void SASPSO<dim>::initialize()
 		// Update the global best variables
 		if(swarm_[i].get_best_value() < global_best_value_)
 		{
-			global_best_value_ = swarm_[i].get_best_value();
-			global_best_position_ = swarm_[i].get_best_position();
-			global_best_constraint_violation_ = swarm_[i].get_best_constraint_violation();
+			//global_best_value_ = swarm_[i].get_best_value();
+			//global_best_position_ = swarm_[i].get_best_position();
+			//global_best_constraint_violation_ = swarm_[i].get_best_constraint_violation();
 		}
 	}
 }
 
 template <std::size_t dim>
-inline void SASPSO<dim>::optimize()
+void SASPSO<dim>::optimize()
 {
-	std::cout << "SASPSO::optimize()" << std::endl;
+	std::cout << "SASPSO::optimize()" << std::endl; //TODO: implement
 }
 
 template <std::size_t dim>
-inline void SASPSO<dim>::print_results(std::ostream &out)
+void SASPSO<dim>::print_results(std::ostream &out)
 {
-	std::cout << "SASPSO::print_results()" << std::endl;
+	std::cout << "SASPSO::print_results()" << std::endl; //TODO: implement
+}
+
+template <std::size_t dim>
+double SASPSO<dim>::get_global_best_value()
+{
+	return 0.0; //TODO: implement
+}
+
+template <std::size_t dim>
+const RealVector<dim> &SASPSO<dim>::get_global_best_position()
+{
+	return RealVector<dim>::Zero(dim,1); //TODO: implement
+}
+
+template <std::size_t dim>
+bool SASPSO<dim>::is_feasible_solution()
+{
+	return false; //TODO: implement
 }

@@ -107,6 +107,13 @@ public:
 	double get_constraint_violation() const { return constraint_violation_; }
 
 	/**
+	 * @brief Get the best total constraint violation of the particle
+	 *
+	 * @return double best total constraint violation
+	 */
+	double get_best_constraint_violation() const { return best_constraint_violation_; }
+
+	/**
 	 * @brief Check if the particle is better according to the feasibility-based rule
 	 *
 	 * @param other the particle to be compared with

@@ -17,7 +17,7 @@
  * @param phi2_s the starting value of the social parameter
  * @param phi2_f the final value of the social parameter
  * @param swarm_ the std::vector storing the swarm of Particle instances
- * @param global_best_constraint_violation_ the constraint violation of the global best particle
+ * @param global_best_index_ the index in the swarm array of the global best particle
  * @param violation_threshold the threshold used for considering a particle as feasible or not
  *
  * @tparam dim the dimension of the space in which the function is defined
@@ -36,8 +36,9 @@ private:
 
 	std::vector<Particle<dim>> swarm_;
 
-	double global_best_constraint_violation_;
-	double violation_threshold;
+	size_t global_best_index_;
+
+	double violation_threshold_;
 
 public:
 	/**
@@ -69,16 +70,40 @@ public:
 	 * This method initializes the swarm of particles and all the parameters needed by the algorithm.
 	 */
 	void initialize() override;
+
 	/**
 	 * @brief Optimize the given problem
 	 */
 	void optimize() override;
+
 	/**
 	 * @brief Print the results of the optimization process to the given output stream
 	 *
 	 * @param out output stream where to print results
 	 */
 	void print_results(std::ostream &out = std::cout) override;
+
+	/**
+	 * @brief Get the actual global best value found by the algorithm
+	 *
+	 * @return double the global best value
+	 */
+	double get_global_best_value() override;
+
+	/**
+	 * @brief Get the position of the global best minimum found by the algorithm
+	 *
+	 * @return const RealVector<dim>& a const reference to the global best position vector
+	 */
+	const RealVector<dim> &get_global_best_position() override;
+
+	/**
+	 * @brief Checks if the global best found by the algorithm is a feasible solution according to the constraints
+	 *
+	 * @return true if the global best is a feasible solution
+	 * @return false otherwise
+	 */
+	bool is_feasible_solution() override;
 };
 
-#include "SASPSO/SASPSO.hpp"
+#include "SASPSO/SASPSO.cpp"

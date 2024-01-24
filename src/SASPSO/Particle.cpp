@@ -99,7 +99,7 @@ void Particle<dim>::print() const
 template <size_t dim>
 bool Particle<dim>::is_better_than(const Particle<dim> &other) const
 {
-	return false;
+	return feasibility_rule(best_value_, other.get_best_value(), best_constraint_violation_, other.get_best_constraint_violation());
 }
 
 template <size_t dim>

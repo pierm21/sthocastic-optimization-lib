@@ -1,5 +1,7 @@
-#include "SASPSO/SASPSO.hpp"
 #include <memory>
+
+#include "SASPSO/SASPSO.hpp"
+#include "TestProblems.hpp"
 
 using namespace type_traits;
 
@@ -10,18 +12,20 @@ double f(const RealVector<2>& x) {
 }
 
 int main() {
-	auto problem = std::make_shared<Problem<2>>(f, RealVector<2>({ -1.0, -1.0 }), RealVector<2>({ 1.0, 1.0 }));
-	problem->add_equality_constraint([](const RealVector<2>& x) { return x[0] + x[1] - 1.0; });
+	auto problem = TestProblems::create_problem<2>(TestProblems::TOWNSEND);
+	auto problem_ptr = std::make_shared<Problem<2>>(problem);
 
-	//std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 100, 100, 1e-6, 1.0, 1.0, 1.0);
-	//opt->initialize();
-	//opt->optimize();
-
+	// particle testing
 	std::random_device rand_dev;
 	auto gen = std::make_shared<std::mt19937>(rand_dev());
-	Particle<2> particle(problem, gen, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0);
+	Particle<2> particle(problem_ptr, gen, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0);
 	particle.initialize();
 	particle.print();
 	particle.update(RealVector<2>({ 0.0, 0.0 }), 1, 100);
 	particle.print();
+
+	// optimizer testing
+	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 100, 2000, 1e-6);
+	opt->initialize();
+	opt->optimize();
 }
