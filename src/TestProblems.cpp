@@ -1,9 +1,9 @@
+#pragma once
+
 #include "TestProblems.hpp"
 
-using namespace TestProblems;
-
 template <size_t dim>
-Problem<dim> create_problem(ProblemName p)
+Problem<dim> TestProblems::create_problem(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{
@@ -38,7 +38,7 @@ Problem<dim> create_problem(ProblemName p)
 }
 
 template <size_t dim>
-double get_exact_value(ProblemName p)
+double TestProblems::get_exact_value(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{
@@ -51,7 +51,7 @@ double get_exact_value(ProblemName p)
 }
 
 template <size_t dim>
-RealVector<dim> get_exact_position(ProblemName p)
+RealVector<dim> TestProblems::get_exact_position(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{

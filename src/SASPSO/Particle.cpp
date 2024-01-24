@@ -1,5 +1,4 @@
 #include "SASPSO/Particle.hpp"
-#include "Particle.hpp"
 
 using namespace type_traits;
 

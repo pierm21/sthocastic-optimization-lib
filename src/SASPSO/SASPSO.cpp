@@ -16,9 +16,10 @@ void SASPSO<dim>::initialize()
 	// Create a shared pointer to the problem
 	std::shared_ptr<Problem<dim>> problem = std::make_shared(problem_);
 
-	// Create the swarm of particles
+	// Swarm creation
 	for(size_t i = 0; i < swarm_size_; ++i)
 	{
+		// Create the particle and initialize it
 		swarm_.push_back(Particle<dim>(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_));
 		swarm_[i].initialize();
 		// Update the global best variables
@@ -29,8 +30,6 @@ void SASPSO<dim>::initialize()
 			global_best_constraint_violation_ = swarm_[i].get_best_constraint_violation();
 		}
 	}
-	std::cout << "SASPSO::initialize()" << w_ << std::endl;
-	SASPSO::problem_.has_constraints() ? std::cout << "Constraints are present" << std::endl : std::cout << "No constraints" << std::endl;
 }
 
 template <std::size_t dim>
