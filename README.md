@@ -5,8 +5,8 @@ Small collection of stochastic algorithms for constrained and unconstrained func
 ## Algorithms
 Each of the implemented algorithms has its own ```README.md``` file in order to better explain its implementation, usage, implemented tests and their results.
 - [**SASPSO - Self Adaptive Standard Particle Swarm Optimization**](include/SASPSO/README.md)
-  - TODO: Short description
-  - Constrained optimization available.
+  - The SASPSO algorithm is a modified version of the Standard Particle Swarm Optimization 2011 algorithm with adaptive search parameters.
+  - Constrained optimization available with a constraint handling technique based on the adaptive relaxation method integrated with the feasibility-based rule.
 - **SECOND ALGORITHM**
 
 ## Common interface
@@ -31,7 +31,33 @@ TODO: sample code
 - Python3
 
 ## Compile and Run
-TODO: add informations
+1. Create the folders needed for building the project and saving the output `.csv` and `.png` files
+   ```
+   mkdir build
+   mkdir output
+   ```
+2. Move into the build folder
+   ```
+   cd ./build
+   ```
+3. Execute cmake
+   ```
+   cmake ..
+   ```
+4. Build the project
+   ```
+   cmake --build .
+   ```
+5. Launch the test executable for the preferred algorithm. A suitable test name must be provided (a complete list of the available test is shown if no parameter is provided)
+   ```
+   ./algorithm [test_name]
+   ```
+   The execution of a test may produce an output file `test_name.csv` that can be found under the `output` folder.
+6. TODO: Plot the results in a graphical way passing to the `csv_ploter.py` script only the filename of the .csv file
+   ```
+   cd ..
+   python scripts/csv_plotter.py test_name.csv
+   ```
 
 ## Documentation
 The full documentation is available [here](). TODO: add link to docs
