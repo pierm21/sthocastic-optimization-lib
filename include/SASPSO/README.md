@@ -44,4 +44,4 @@ The complete documentation of the public interface of our project can be consult
 ## Author
 Guerrini Alberto
 
-## [<< Back to parent README](../README.md)
+## [<< Back to parent README](../../README.md)
