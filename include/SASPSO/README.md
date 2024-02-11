@@ -8,8 +8,7 @@ For example the random point that has to be choosen in order to update the posit
 Another improvement is the dynamic adaptivity of the optimization parameters that the PSO algorithm needs. As shown by Tang et al., if we provide initial and final parameters that follows the given relations,
 we can prove the convergence of the SASPSO 2011 algorithm.
 
-This version can also solve contrained optimization problems (COPs) exploiting an adaptive relaxation method integrated with the feasibility-based rule. This technique is better than the common penalty rule since does
-not require additional parameters.
+This version can also solve contrained optimization problems (COPs) exploiting an adaptive relaxation method integrated with the feasibility-based rule. This technique is better than the common penalty rule since does not require additional parameters. More details can be found in [this](https://doi.org/10.1016/j.compchemeng.2011.09.018) paper by Zhang et al.
 
 Two main classes have been developed:
 - `Particle` represents a single particle of the swarm and manage its initialization and update at each iteration. It also implement the feasibility rule.
