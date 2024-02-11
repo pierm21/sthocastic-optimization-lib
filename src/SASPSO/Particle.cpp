@@ -5,7 +5,7 @@ using namespace type_traits;
 template <size_t dim>
 void Particle<dim>::initialize()
 {
-    // Create the uniform double generator in the range [lower_bound_i, upper_bound_i] for each dimension i
+    // Draw uniformly a value in the range [lower_bound_i, upper_bound_i] for each dimension i
     for (size_t i = 0; i < dim; ++i)
     {
         std::uniform_real_distribution<double> distr(problem_->get_lower_bound(i), problem_->get_upper_bound(i));
@@ -24,7 +24,7 @@ void Particle<dim>::initialize()
 }
 
 template <std::size_t dim>
-void Particle<dim>::update(const RealVector<dim> &global_best_position, int iteration, int max_iter)
+void Particle<dim>::update(const RealVector<dim> &global_best_position, int iteration, int max_iter, double tol)
 {
     double beta = (global_best_position - best_position_).norm();
     // Compute omega according to the current iteration
@@ -70,9 +70,9 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, int iter
     // Update the total constraint violation
     update_constraint_violation();
 
-    // Update the peresonal best position, value, and violation following the feasibility-based rule
+    // Update the personal best position, value, and violation following the feasibility-based rule
     double current_value = problem_->get_fitness_function()(position_);
-    if (feasibility_rule(current_value, best_value_, constraint_violation_, best_constraint_violation_))
+    if (feasibility_rule(current_value, best_value_, constraint_violation_, best_constraint_violation_, tol))
     {
         best_position_ = position_;
         best_value_ = current_value;
@@ -92,9 +92,9 @@ void Particle<dim>::print() const
 }
 
 template <size_t dim>
-bool Particle<dim>::is_better_than(const Particle<dim> &other) const
+bool Particle<dim>::is_better_than(const Particle<dim> &other, double tol) const
 {
-	return feasibility_rule(best_value_, other.get_best_value(), best_constraint_violation_, other.get_best_constraint_violation());
+	return feasibility_rule(best_value_, other.get_best_value(), best_constraint_violation_, other.get_best_constraint_violation(), tol);
 }
 
 template <size_t dim>
@@ -111,14 +111,14 @@ void Particle<dim>::update_constraint_violation()
 }
 
 template <size_t dim>
-bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2) const
+bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double tol) const
 {
-    if (value1 < value2)
+    if (viol1 < viol2 - tol)
         return true;
-    else if (value1 > value2)
+    else if (viol1 > viol2 + tol)
         return false;
-    // so they have the same fitness value
-    else if (viol1 < viol2)
+    // they have the same total violation value up to a tolearance tol
+    else if (value1 < value2)
         return true;
     else
         return false;

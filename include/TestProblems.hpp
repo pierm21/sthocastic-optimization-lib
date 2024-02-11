@@ -18,12 +18,13 @@ namespace TestProblems
 {
 	/**
 	 * @brief Problems that can be used for testing purposes.
-	 * - TOWNSEND: 2D function with global minimum f(0) = 0
-	 *
+	 * - TOWNSEND: 2D function with global minimum f(2.0052938, 1.1944509) = -2.0239884
+	 * - GOMEZ_LEVY: 2D function with global minimum f(0.089842010, -0.7126564) = -1.031628453
 	 */
 	enum ProblemName
 	{
-		TOWNSEND
+		TOWNSEND,
+		GOMEZ_LEVY
 	};
 
 	/**

@@ -22,13 +22,13 @@ void SASPSO<dim>::initialize()
 	global_best_index_ = 0;
 
 	// Initialize the remaining particle in the swarm
-	for (size_t i = 1; i < swarm_size_; ++i)
+	for (std::size_t i = 1; i < swarm_size_; ++i)
 	{
 		// Create and initialize the particle
 		swarm_.emplace_back(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
 		swarm_[i].initialize();
 		// Update the global best
-		if (swarm_[i].is_better_than(swarm_[global_best_index_]))
+		if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
 			global_best_index_ = i;
 		// Add the constraint violation to the array
 		total_violations.push_back(swarm_[i].get_best_constraint_violation());
@@ -52,26 +52,27 @@ void SASPSO<dim>::optimize()
     // Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
     {
-		// Reset the number of feasible particles
+		// Reset the number of feasible particles for the current iteration
 		feasible_particles = 0;
 
 		// Process each particle of the swarm
         for (size_t i = 0; i < swarm_size_; ++i)
 		{
 			// Update the particle
-		   	swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_);
-			// Update global best position
-			if (swarm_[i].is_better_than(swarm_[global_best_index_]))
-				global_best_index_ = i;
+		   	swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
 			// Check if the particle is feasible
-			if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
+			if (swarm_[i].get_best_constraint_violation() <= violation_threshold_) {
 				feasible_particles++;
+				// Update global best position
+				if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
+					global_best_index_ = i;
+			}
         }
-
-		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << std::endl;
 
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
+
+		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << std::endl;
 
 		// Update the current iteration
         current_iter++;

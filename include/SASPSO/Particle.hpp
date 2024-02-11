@@ -75,7 +75,7 @@ public:
 	/**
 	 * @brief Update velocity, position and total constraint violation of the particle at current iteration
 	 */
-	void update(const RealVector<dim> &global_best_position, int iteration, int max_iter);
+	void update(const RealVector<dim> &global_best_position, int iteration, int max_iter, double tol = 1e-8);
 
 	void print() const;
 
@@ -107,7 +107,7 @@ public:
 	double get_constraint_violation() const { return constraint_violation_; }
 
 	/**
-	 * @brief Get the best total constraint violation of the particle
+	 * @brief Get the constraint violation in the best position found by the particle
 	 *
 	 * @return double best total constraint violation
 	 */
@@ -117,10 +117,11 @@ public:
 	 * @brief Check if the particle is better according to the feasibility-based rule
 	 *
 	 * @param other the particle to be compared with
+	 * @param tol the tolerance to be used in the comparison
 	 * @return true if the particle is better than the other
 	 * @return false otherwise
 	 */
-	bool is_better_than(const Particle<dim> &other) const;
+	bool is_better_than(const Particle<dim> &other, double tol = 1e-8) const;
 
 private:
 	/**
@@ -135,10 +136,11 @@ private:
 	 * @param value2 the fitness value on second position
 	 * @param viol1 the constraint violation on the first position
 	 * @param viol2 the constraint violation on the second position
+	 * @param tol the tolerance to be used in the comparison
 	 * @return true if the first position is better than the second one
 	 * @return false otherwise
 	 */
-	bool feasibility_rule(double value1, double value2, double viol1, double viol2) const;
+	bool feasibility_rule(double value1, double value2, double viol1, double viol2, double tol = 1e-8) const;
 };
 
 #include "SASPSO/Particle.cpp"
