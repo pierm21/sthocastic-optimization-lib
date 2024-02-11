@@ -6,7 +6,7 @@
 using namespace type_traits;
 
 int main() {
-	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
+	auto problem = TestProblems::create_problem<2>(TestProblems::TOWNSEND);
 
 	// particle testing
 	auto problem_ptr = std::make_shared<Problem<2>>(problem);
@@ -20,11 +20,11 @@ int main() {
 
 	// optimizer testing
 	std::cout << "--- Optimizer testing ---" << std::endl;
-	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 50, 100, 1e-8);
+	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 300, 5000, 1e-8);
 	opt->initialize();
 	opt->optimize();
 	opt->print_results();
-	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
+	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::TOWNSEND) - opt->get_global_best_value()) << std::endl;
 
 	return 0;
 }

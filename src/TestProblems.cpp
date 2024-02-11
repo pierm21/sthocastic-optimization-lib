@@ -15,8 +15,8 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-3.25, -3.5);
-		RealVector<dim> ub(1.25, 3.75);
+		RealVector<dim> lb(-2.25, -2.5);
+		RealVector<dim> ub(2.25, 1.75);
 
 		Problem<dim> problem(f, lb, ub);
 
@@ -44,8 +44,8 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-2, -2);
-		RealVector<dim> ub(1.75, 2);
+		RealVector<dim> lb(-1, -1);
+		RealVector<dim> ub(0.75, 1);
 
 		Problem<dim> problem(f, lb, ub);
 

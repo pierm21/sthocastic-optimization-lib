@@ -17,6 +17,8 @@ void SASPSO<dim>::initialize()
 	// Initialize the first particle
 	swarm_.emplace_back(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
 	swarm_[0].initialize();
+	// Add the constraint violation to the array
+	total_violations.push_back(swarm_[0].get_best_constraint_violation());
 
 	// Initialize the global best
 	global_best_index_ = 0;
@@ -46,12 +48,13 @@ template <std::size_t dim>
 void SASPSO<dim>::optimize()
 {
 	int current_iter = 0;
-    double temp_value = 0.0;
 	int feasible_particles = 0;
 
     // Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
     {
+		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
+
 		// Reset the number of feasible particles for the current iteration
 		feasible_particles = 0;
 
@@ -71,8 +74,6 @@ void SASPSO<dim>::optimize()
 
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
-
-		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << std::endl;
 
 		// Update the current iteration
         current_iter++;
