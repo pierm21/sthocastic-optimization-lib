@@ -40,7 +40,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE
 
 # link custom libraries, openmp and eigen to executables
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(test-saspso PUBLIC  ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen)
+    target_link_libraries(test-saspso PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen)
 else()
     target_link_libraries(test-saspso ${LIBRARIES})
 endif()

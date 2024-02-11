@@ -78,6 +78,19 @@ public:
 	void optimize() override;
 
 	/**
+	 * @brief Optimize the given problem and store the history of the best value found every interval iterations
+	 *
+	 * @param history the vector where to store the history of the best value found
+	 * @param interval the sampling interval in number of iterations
+	 */
+	void optimize(std::vector<double> &history, const int interval = 50);
+
+	/**
+	 * @brief Optimize the given problem using OMP parallel constructs
+	 */
+	void optimize_parallel();
+
+	/**
 	 * @brief Print the results of the optimization process to the given output stream
 	 *
 	 * @param out output stream where to print results

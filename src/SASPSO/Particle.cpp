@@ -40,8 +40,6 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, int iter
     delta = (phi2_s_ - phi2_f_) / max_iter;
     double phi2 = (phi2_s_ - phi2_f_) * exp(delta * iteration / beta) + phi2_f_;
 
-    //std::cout << "beta: " << beta << "omega: " << omega << " phi1: " << phi1 << " phi2: " << phi2 << " delta: " << delta << std::endl;
-
     // Compute the isobarycenter of the particle
     RealVector<dim> G = position_;
     G += (phi1 * (best_position_ - position_) + phi2 * (global_best_position - position_)) / 3.0;
@@ -62,8 +60,6 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, int iter
     velocity_ = omega * velocity_ + random_point - position_;
     // Update the position
     position_ = velocity_ + position_;
-
-   // std::cout << "Position: " << position_ << " velocity: " << velocity_ << " G: " << G << " random_point: " << random_point << std::endl;
 
     // Modify each dimension of the position vector with its saturation energy
     for (size_t i = 0; i < dim; i++)

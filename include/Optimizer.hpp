@@ -14,6 +14,7 @@ public:
 	Optimizer() = delete;
 	Optimizer(const Problem<dim>& problem)
 		: problem_(problem) {}
+	virtual ~Optimizer() = default;
 	virtual void initialize() = 0;
 	virtual void optimize() = 0;
 	virtual void print_results(std::ostream& out = std::cout) = 0;
