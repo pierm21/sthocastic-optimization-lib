@@ -7,16 +7,17 @@ void SASPSO<dim>::initialize()
 {
 	// Instantiate the marsenne twister
 	std::random_device rand_dev;
-	std::shared_ptr<std::mt19937> generator = std::make_shared(rand_dev());
+	std::shared_ptr<std::mt19937> generator = std::make_shared<std::mt19937>(rand_dev());
 	// Create a shared pointer to the problem
-	std::shared_ptr<Problem<dim>> problem = std::make_shared(problem_);
+	std::shared_ptr<Problem<dim>> problem = std::make_shared<Problem<dim>>(Optimizer<dim>::problem_);
 
 	// Initialize the array of total constraint violations
 	std::vector<double> total_violations;
 
 	// Initialize the first particle
-	swarm.emplace_back(problem_, generator_, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
-	swarm[0].initialize();
+	swarm_.emplace_back(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
+	swarm_[0].initialize();
+
 	// Initialize the global best
 	global_best_index_ = 0;
 
@@ -24,7 +25,7 @@ void SASPSO<dim>::initialize()
 	for (size_t i = 1; i < swarm_size_; ++i)
 	{
 		// Create and initialize the particle
-		swarm.emplace_back(problem_, generator_, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
+		swarm_.emplace_back(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
 		swarm_[i].initialize();
 		// Update the global best
 		if (swarm_[i].is_better_than(swarm_[global_best_index_]))
@@ -54,11 +55,11 @@ void SASPSO<dim>::optimize()
 		// Reset the number of feasible particles
 		feasible_particles = 0;
 
-		// Update each particle of the swarm
+		// Process each particle of the swarm
         for (size_t i = 0; i < swarm_size_; ++i)
 		{
 			// Update the particle
-		   	swarm_[i].update(swarm_[global_best_index_], current_iter, max_iter_);
+		   	swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_);
 			// Update global best position
 			if (swarm_[i].is_better_than(swarm_[global_best_index_]))
 				global_best_index_ = i;
@@ -67,20 +68,27 @@ void SASPSO<dim>::optimize()
 				feasible_particles++;
         }
 
-		// Update the violation threshold
-		// TODO
-		violation_threshold_ = violation_threshold_ * (1 - ((double)feasible_particles / swarm_size_));
+		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << std::endl;
 
+		// Update the violation threshold according to the proportion of feasible particles
+		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
 
+		// Update the current iteration
         current_iter++;
     }
-    return 0;
 }
 
 template <std::size_t dim>
 void SASPSO<dim>::print_results(std::ostream &out)
 {
-	std::cout << "SASPSO::print_results()" << std::endl; // TODO: implement
+	if(global_best_index_ == -1)
+	{
+		out << "No results to show" << std::endl;
+		return;
+	}
+	out << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
+	out << "Best position: " << swarm_[global_best_index_].get_best_position() << std::endl;
+	out << "Total constraint violation: " << swarm_[global_best_index_].get_best_constraint_violation() << std::endl;
 }
 
 template <std::size_t dim>
@@ -98,5 +106,5 @@ const RealVector<dim> &SASPSO<dim>::get_global_best_position()
 template <std::size_t dim>
 bool SASPSO<dim>::is_feasible_solution()
 {
-	return swarm_[global_best_index_].get_best_constraint_violation() <= tol;
+	return swarm_[global_best_index_].get_best_constraint_violation() <= tol_;
 }

@@ -84,15 +84,10 @@ template <std::size_t dim>
 void Particle<dim>::print() const
 {
     std::cout << "Position:\n" << position_ << std::endl;
-
     std::cout << "Velocity:\n" << velocity_ << std::endl;
-
     std::cout << "Constraint violation:\t" << constraint_violation_ << std::endl;
-
     std::cout << "Best position:\n" << best_position_ << std::endl;
-
     std::cout << "Best value:\t" << best_value_ << std::endl;
-
     std::cout << "Best constraint violation:\t" << best_constraint_violation_ << std::endl;
 }
 
