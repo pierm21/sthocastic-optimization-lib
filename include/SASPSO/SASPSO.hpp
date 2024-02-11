@@ -63,7 +63,8 @@ public:
 		  swarm_size_(swarm_size), max_iter_(max_iter), tol_(tol),
 		  omega_s_(omega_s), omega_f_(omega_f),
 		  phi1_s_(phi1_s), phi1_f_(phi1_f),
-		  phi2_s_(phi2_s), phi2_f_(phi2_f){};
+		  phi2_s_(phi2_s), phi2_f_(phi2_f),
+		  global_best_index_(-1){};
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process

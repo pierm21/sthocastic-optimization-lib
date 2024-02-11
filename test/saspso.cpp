@@ -5,17 +5,11 @@
 
 using namespace type_traits;
 
-// test function
-// f(x) = x1^2 + x2^2
-double f(const RealVector<2>& x) {
-	return x[0] * x[0] + x[1] * x[1];
-}
-
 int main() {
 	auto problem = TestProblems::create_problem<2>(TestProblems::TOWNSEND);
-	auto problem_ptr = std::make_shared<Problem<2>>(problem);
 
 	// particle testing
+	auto problem_ptr = std::make_shared<Problem<2>>(problem);
 	std::random_device rand_dev;
 	auto gen = std::make_shared<std::mt19937>(rand_dev());
 	Particle<2> particle(problem_ptr, gen, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0);
@@ -25,7 +19,12 @@ int main() {
 	particle.print();
 
 	// optimizer testing
-	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 100, 2000, 1e-6);
+	std::cout << "--- Optimizer testing ---" << std::endl;
+	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, 300, 5000, 1e-8);
 	opt->initialize();
 	opt->optimize();
+	opt->print_results();
+	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::TOWNSEND) - opt->get_global_best_value()) << std::endl;
+
+	return 0;
 }
