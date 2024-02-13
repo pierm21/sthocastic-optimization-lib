@@ -77,7 +77,12 @@ public:
 	 */
 	void update(const RealVector<dim> &global_best_position, int iteration, int max_iter, double tol = 1e-8);
 
-	void print() const;
+	/**
+	 * @brief Print the particle parameters and actual state
+	 *
+	 * @param out the output stream where to write the data
+	 */
+	void print(std::ostream &out = std::cout) const;
 
 	/**
 	 * @brief Get the actual position of the particle

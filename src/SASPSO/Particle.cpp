@@ -84,14 +84,28 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, int iter
 }
 
 template <std::size_t dim>
-void Particle<dim>::print() const
+void Particle<dim>::print(std::ostream &out) const
 {
-    std::cout << "Position:\n" << position_ << std::endl;
-    std::cout << "Velocity:\n" << velocity_ << std::endl;
-    std::cout << "Constraint violation:\t" << constraint_violation_ << std::endl;
-    std::cout << "Best position:\n" << best_position_ << std::endl;
-    std::cout << "Best value:\t" << best_value_ << std::endl;
-    std::cout << "Best constraint violation:\t" << best_constraint_violation_ << std::endl;
+    out << "Position: (";
+	for (std::size_t i = 0; i < dim; ++i)
+		out << position_[i] << ", ";
+	out << "\b\b)" << std::endl;
+
+    out << "Velocity: (";
+	for (std::size_t i = 0; i < dim; ++i)
+		out << velocity_[i] << ", ";
+	out << "\b\b)" << std::endl;
+
+    out << "Constraint violation:\t" << constraint_violation_ << std::endl;
+
+    out << "Best position: (";
+	for (std::size_t i = 0; i < dim; ++i)
+		out << best_position_[i] << ", ";
+	out << "\b\b)" << std::endl;
+
+    out << "Best value:\t" << best_value_ << std::endl;
+
+    out << "Best constraint violation:\t" << best_constraint_violation_ << std::endl;
 }
 
 template <size_t dim>

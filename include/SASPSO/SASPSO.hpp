@@ -68,9 +68,15 @@ public:
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process
-	 * This method initializes the swarm of particles and all the parameters needed by the algorithm.
+	 * This method initializes the swarm of particles and all the parameters needed by the algorithm
 	 */
 	void initialize() override;
+
+	/**
+	 * @brief Initialize the optimizator to start the optimization process using OMP parallel constructs
+	 * This initialization must be used if the optimization will be performed using optimize_parallel method
+	 */
+	void initialize_parallel();
 
 	/**
 	 * @brief Optimize the given problem

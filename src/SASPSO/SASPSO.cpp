@@ -46,6 +46,71 @@ void SASPSO<dim>::initialize()
 }
 
 template <std::size_t dim>
+void SASPSO<dim>::initialize_parallel()
+{
+	// Create a shared pointer to the problem
+	std::shared_ptr<Problem<dim>> problem = std::make_shared<Problem<dim>>(Optimizer<dim>::problem_);
+
+	// Initialize the array of total constraint violations. Needed since threads performs direct access to the array
+	std::vector<double> total_violations;
+	total_violations.resize(swarm_size_);
+
+	// Initialize the swarm. Needed since threads performs direct access to the array
+	swarm_.resize(swarm_size_);
+
+	// Add the constraint violation to the array
+	total_violations[0] = swarm_[0].get_best_constraint_violation();
+
+	// Initialize the global best
+	global_best_index_ = 0;
+
+// Spawn the threads to initialize the particles
+#pragma omp parallel shared(swarm_, total_violations, global_best_index_, problem)
+	{
+		// Instantiate the marsenne twister, one for each thread since it is not thread safe
+		std::random_device rand_dev;
+		std::shared_ptr<std::mt19937> generator = std::make_shared<std::mt19937>(rand_dev());
+
+		// Initialize all the particles. Barrier at the end of the parallel region is needed
+#pragma omp for schedule(static)
+		for (std::size_t i = 0; i < swarm_size_; ++i)
+		{
+			// Create and initialize the particle
+			swarm_[i] = Particle(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
+			swarm_[i].initialize();
+			// Add the constraint violation to the array
+			total_violations[i] = swarm_[i].get_best_constraint_violation();
+		}
+
+		// Initialize the thread local best index
+		std::size_t local_best_index = global_best_index_;
+
+		// Find the local best index for each thread
+#pragma omp for nowait schedule(static)
+		for (std::size_t i = 1; i < swarm_size_; ++i)
+		{
+			if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
+				local_best_index = i;
+		}
+
+		// Each thread updates the global best index if it has a better solution
+#pragma omp critical(update_global_best_init)
+		{
+			if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+				global_best_index_ = local_best_index;
+		}
+	}
+
+	// Initialize the violation threshold as the median of the total violations
+	// TODO: sort parallel
+	std::sort(total_violations.begin(), total_violations.end());
+	if (swarm_size_ % 2 == 0)
+		violation_threshold_ = (total_violations[swarm_size_ / 2] + total_violations[swarm_size_ / 2 - 1]) / 2;
+	else
+		violation_threshold_ = total_violations[swarm_size_ / 2];
+}
+
+template <std::size_t dim>
 void SASPSO<dim>::optimize()
 {
 	int current_iter = 0;
@@ -147,13 +212,13 @@ void SASPSO<dim>::optimize_parallel()
 				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
 				{
 					feasible_particles++;
-					// Update global best position
+					// Update local best position
 					if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
 						global_best_index_ = i;
 				}
 			}
 			// Each thread updates the global best index if it has a better solution
-#pragma omp critical(update_global_best)
+#pragma omp critical(update_global_best_opt)
 			{
 				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
 					global_best_index_ = local_best_index;
