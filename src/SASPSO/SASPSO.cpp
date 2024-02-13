@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SASPSO/SASPSO.hpp"
+#include <omp.h>
 
 template <std::size_t dim>
 void SASPSO<dim>::initialize()
@@ -48,13 +49,12 @@ template <std::size_t dim>
 void SASPSO<dim>::optimize()
 {
 	int current_iter = 0;
-	int feasible_particles = 0;
 
 	// Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
 	{
 		// Reset the number of feasible particles for the current iteration
-		feasible_particles = 0;
+		int feasible_particles = 0;
 
 		// Process each particle of the swarm
 		for (size_t i = 0; i < swarm_size_; ++i)
@@ -88,7 +88,7 @@ void SASPSO<dim>::optimize(std::vector<double> &history, const int interval)
 	// Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
 	{
-		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
+		// std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 
 		// Reset the number of feasible particles for the current iteration
 		feasible_particles = 0;
@@ -124,36 +124,39 @@ template <std::size_t dim>
 void SASPSO<dim>::optimize_parallel()
 {
 	int current_iter = 0;
-	int feasible_particles = 0;
 
 	// Outer optimization loop over all the iterations. This loop isn't parallelized, the inner loop is
 	//// OMP declaration is here to avoid the overhead of creating and destroying threads at each iteration
 	while (current_iter < max_iter_)
 	{
-		std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
-
 		// Reset the number of feasible particles for the current iteration
-		feasible_particles = 0;
+		int feasible_particles = 0;
 
-		// Process group of particles in parallel. The custom reduction is needed to handle the global best index
-#pragma omp declare                                                                                                                 \
-reduction(particle_min :																		 /*custom reduction name*/          \
-			  std::size_t :																		 /*type of the reduction variable*/ \
-			  omp_out = swarm_[omp_in].is_better_than(swarm_[omp_out], tol_) ? omp_in : omp_out) /*reduction operator definition*/  \
-	initializer(omp_priv = 0)
-#pragma omp parallel for schedule(static) \
-	reduction(+ : feasible_particles) reduction(particle_min : global_best_index_)
-		for (size_t i = 0; i < swarm_size_; ++i)
+		// Initialize the threads
+#pragma omp parallel shared(global_best_index_, swarm_)
 		{
-			// Update the particle
-			swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
-			// Check if the particle is feasible
-			if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
+			// Initialize the thread local best index
+			int local_best_index = global_best_index_;
+			// Process each particle subdividing them among all threads
+#pragma omp for nowait schedule(static) reduction(+ : feasible_particles)
+			for (size_t i = 0; i < swarm_size_; ++i)
 			{
-				feasible_particles++;
-				// Update global best position
-				if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
-					global_best_index_ = i;
+				//  Update the particle
+				swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+				// Check if the particle is feasible
+				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
+				{
+					feasible_particles++;
+					// Update global best position
+					if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
+						global_best_index_ = i;
+				}
+			}
+			// Each thread updates the global best index if it has a better solution
+#pragma omp critical(update_global_best)
+			{
+				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+					global_best_index_ = local_best_index;
 			}
 		}
 
@@ -168,13 +171,11 @@ reduction(particle_min :																		 /*custom reduction name*/          \
 template <std::size_t dim>
 void SASPSO<dim>::print_results(std::ostream &out)
 {
-	if (global_best_index_ == -1)
-	{
-		out << "No results to show" << std::endl;
-		return;
-	}
 	out << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
-	out << "Best position: " << swarm_[global_best_index_].get_best_position() << std::endl;
+	out << "Best position: (";
+	for (std::size_t i = 0; i < dim; ++i)
+		out << swarm_[global_best_index_].get_best_position()[i] << ", ";
+	out << "\b\b)" << std::endl;
 	out << "Total constraint violation: " << swarm_[global_best_index_].get_best_constraint_violation() << std::endl;
 }
 
