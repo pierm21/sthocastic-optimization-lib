@@ -191,7 +191,7 @@ void SASPSO<dim>::optimize_parallel()
 	int current_iter = 0;
 
 	// Outer optimization loop over all the iterations. This loop isn't parallelized, the inner loop is
-	//// OMP declaration is here to avoid the overhead of creating and destroying threads at each iteration
+	// Even if the thread creation is inside the loop, the compiler optimizes it and creates the threads only once (same execution time)
 	while (current_iter < max_iter_)
 	{
 		// Reset the number of feasible particles for the current iteration
@@ -213,8 +213,8 @@ void SASPSO<dim>::optimize_parallel()
 				{
 					feasible_particles++;
 					// Update local best position
-					if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
-						global_best_index_ = i;
+					if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
+						local_best_index = i;
 				}
 			}
 			// Each thread updates the global best index if it has a better solution
