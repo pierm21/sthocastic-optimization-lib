@@ -69,4 +69,4 @@ ax.text(x=0.5, y=1.05, s=description, fontsize=14, alpha=0.75, ha='center', va='
 
 
 # Save the plot in the output directory
-plt.savefig(os.path.join(os.getcwd(), sys.argv[1][:-4] + ".png"))
+plt.savefig(os.path.join(os.getcwd(), "..", "output", sys.argv[1][:-4] + ".png"))

@@ -234,6 +234,58 @@ void SASPSO<dim>::optimize_parallel()
 }
 
 template <std::size_t dim>
+void SASPSO<dim>::optimize_parallel(std::vector<double> &history, const int interval)
+{
+	int current_iter = 0;
+
+	// Outer optimization loop over all the iterations. This loop isn't parallelized, the inner loop is
+	// Even if the thread creation is inside the loop, the compiler optimizes it and creates the threads only once (same execution time)
+	while (current_iter < max_iter_)
+	{
+		// Reset the number of feasible particles for the current iteration
+		int feasible_particles = 0;
+
+		// Initialize the threads
+#pragma omp parallel shared(global_best_index_, swarm_)
+		{
+			// Initialize the thread local best index
+			int local_best_index = global_best_index_;
+			// Process each particle subdividing them among all threads
+#pragma omp for nowait schedule(static) reduction(+ : feasible_particles)
+			for (size_t i = 0; i < swarm_size_; ++i)
+			{
+				//  Update the particle
+				swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+				// Check if the particle is feasible
+				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
+				{
+					feasible_particles++;
+					// Update local best position
+					if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
+						local_best_index = i;
+				}
+			}
+			// Each thread updates the global best index if it has a better solution
+#pragma omp critical(update_global_best_opt)
+			{
+				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+					global_best_index_ = local_best_index;
+			}
+		}
+
+		// Update the violation threshold according to the proportion of feasible particles
+		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
+
+		// Update the current iteration
+		current_iter++;
+
+		// Store current global best value in history
+		if (current_iter % interval == 0)
+			history.push_back(swarm_[global_best_index_].get_best_value());
+	}
+}
+
+template <std::size_t dim>
 void SASPSO<dim>::print_results(std::ostream &out)
 {
 	out << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
