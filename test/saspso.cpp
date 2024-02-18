@@ -3,10 +3,11 @@
 
 #include "SASPSO/SASPSO.hpp"
 #include "TestProblems.hpp"
+#include "OptimizerFactory.hpp"
 
 using namespace type_traits;
 
-int main() {
+int serial_parallel_test() {
 	// Initialize problem and solver parameters
 	int iter = 5000;
 	int particles = 300;
@@ -45,5 +46,32 @@ int main() {
 	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
 	std::cout << "Absolute distance: " << (TestProblems::get_exact_position<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_position()).norm() << std::endl;
 	std::cout << "Elapsed optimization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
+	return 0;
+}
+
+
+int main(int argc, char ** argv)
+{
+	// Check the number of arguments
+	if (argc != 2)
+	{
+		std::cout << "Usage: ./test-saspso test_name" << std::endl;
+		std::cout << "Available tests for SASPSO algorithm: error_iterations, serial_parallel, time_numparticles" << std::endl;
+		return -1;
+	}
+	// Get from command line the required test
+	std::string test = argv[1];
+	if (test == "error_iterations")
+		serial_parallel_test();
+	else if (test == "serial_parallel")
+		serial_parallel_test();
+	else if (test == "time_numparticles")
+		serial_parallel_test();
+	else
+	{
+		std::cout << "Usage: ./test-saspso test_name" << std::endl;
+		std::cout << "Available tests for SASPSO algorithm: error_iterations, serial_parallel, time_numparticles" << std::endl;
+		return -1;
+	}
 	return 0;
 }
