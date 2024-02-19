@@ -58,16 +58,15 @@ int serial_parallel_test()
 
 int error_iterations_test()
 {
-	constexpr int log_interval = 10;
+	constexpr int log_interval = 1;
 
-	int iter = 10000;
-	int particles = 300;
+	int iter = 300;
+	int particles = 50;
 	double tol = 1e-16;
 	auto gomez_levy = TestProblems::create_problem<dimension>(TestProblems::GOMEZ_LEVY);
-	auto townsend = TestProblems::create_problem<dimension>(TestProblems::TOWNSEND);
 
 	// Preliminary informations to std out
-	std::cout << "Error as function of performed iteration test." << std::endl;
+	std::cout << "Error as function of performed iteration test (static and dynamic)." << std::endl;
 	std::cout << "Logs in /output/saspso_error_iterations.csv every " << log_interval << " iterations." << std::endl;
 
 	std::cout << "Problem: Townsend, Gomez-Levy" << std::endl;
@@ -84,59 +83,58 @@ int error_iterations_test()
 	}
 
 	// Write comments and header
-	file_out << "# Error and constraints violation over performed iterations" << std::endl;
+	file_out << "# Error and constraints violation over iterations (static/dynamic)" << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
 	file_out << "# Particles: " << particles << std::endl;
 	file_out << "# Tolerance: " << tol << std::endl;
-	file_out << "# TS=Townsend, GL=Gomez-Levy" << std::endl;
+	file_out << "# Problem=Gomez-Levy" << std::endl;
 
-	file_out << "Iters,TS_err,TS_viol,TS_p_err,TS_p_viol,GL_err,GL_viol,GL_p_err,GL_p_viol" << std::endl;
+	file_out << "Iters,static_err,static_viol,static_p_err,static_p_viol,dynamic_err,dynamic_viol,dynamic_p_err,dynamic_p_viol" << std::endl;
 
 	// Initialize history and log_interval
-	std::vector<double> history_townsend, violation_townsend;
-	std::vector<double> history_gomez_levy, violation_gomez_levy;
-	std::vector<double> history_townsend_p, violation_townsend_p;
-	std::vector<double> history_gomez_levy_p, violation_gomez_levy_p;
+	std::vector<double> history_s, violation_s;
+	std::vector<double> history_d, violation_d;
+	std::vector<double> history_s_p, violation_s_p;
+	std::vector<double> history_d_p, violation_d_p;
 
 	// Optimize the problems. We need to use a pointer for the specialized class
-	std::unique_ptr<SASPSO<2>> opt = std::make_unique<SASPSO<2>>(gomez_levy, particles, iter, tol);
+	std::unique_ptr<SASPSO<2>> opt = std::make_unique<SASPSO<dimension>>(gomez_levy, particles, iter, tol);
 	opt->initialize();
-	opt->optimize(history_gomez_levy, violation_gomez_levy, log_interval);
+	opt->optimize(history_d, violation_d, log_interval);
 
 	opt = std::make_unique<SASPSO<2>>(gomez_levy, particles, iter, tol);
 	opt->initialize_parallel();
-	opt->optimize_parallel(history_gomez_levy_p, violation_gomez_levy_p, log_interval);
+	opt->optimize_parallel(history_d_p, violation_d_p, log_interval);
 
-	opt = std::make_unique<SASPSO<2>>(townsend, particles, iter, tol);
-	opt->initialize();
-	opt->optimize(history_townsend, violation_townsend, log_interval);
+	std::unique_ptr<SASPSO<2>> opt1 = std::make_unique<SASPSO<dimension>>(gomez_levy, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
+	opt1->initialize();
+	opt1->optimize(history_s, violation_s, log_interval);
 
-	opt = std::make_unique<SASPSO<2>>(townsend, particles, iter, tol);
-	opt->initialize_parallel();
-	opt->optimize_parallel(history_townsend_p, violation_townsend_p, log_interval);
+	opt1 = std::make_unique<SASPSO<2>>(gomez_levy, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
+	opt1->initialize_parallel();
+	opt1->optimize_parallel(history_s_p, violation_s_p, log_interval);
 
 	// Print the history vectors size
-	std::cout << "Townsend history size: " << history_townsend.size() << std::endl;
-	std::cout << "Townsend parallel history size: " << history_townsend_p.size() << std::endl;
-	std::cout << "Gomez-Levy history size: " << history_gomez_levy.size() << std::endl;
-	std::cout << "Gomez-Levy parallel history size: " << history_gomez_levy_p.size() << std::endl;
+	std::cout << "Gomez-Levy dynamic history size: " << history_d.size() << std::endl;
+	std::cout << "Gomez-Levy dynamic parallel history size: " << history_d_p.size() << std::endl;
+	std::cout << "Gomez-Levy static history size: " << history_s.size() << std::endl;
+	std::cout << "Gomez-Levy static parallel history size: " << history_s_p.size() << std::endl;
 
 	// Get the exact global minimum
-	double exact_townsend = TestProblems::get_exact_value<dimension>(TestProblems::TOWNSEND);
 	double exact_gomez_levy = TestProblems::get_exact_value<dimension>(TestProblems::GOMEZ_LEVY);
 
 	// Write to file the error values
-	for (int i = 0; i < history_townsend.size(); i++)
+	for (int i = 0; i < history_s.size(); i++)
 	{
 		file_out << i * log_interval << ",";
-		file_out << std::abs(history_townsend[i] - exact_townsend) << ",";
-		file_out << violation_townsend[i] << ",";
-		file_out << std::abs(history_townsend_p[i] - exact_townsend) << ",";
-		file_out << violation_townsend_p[i] << ",";
-		file_out << std::abs(history_gomez_levy[i] - exact_gomez_levy) << ",";
-		file_out << violation_gomez_levy[i] << ",";
-		file_out << std::abs(history_gomez_levy_p[i] - exact_gomez_levy) << ",";
-		file_out << violation_gomez_levy_p[i] << std::endl;
+		file_out << std::abs(history_s[i] - exact_gomez_levy) << ",";
+		file_out << violation_s[i] << ",";
+		file_out << std::abs(history_s_p[i] - exact_gomez_levy) << ",";
+		file_out << violation_s_p[i] << ",";
+		file_out << std::abs(history_d[i] - exact_gomez_levy) << ",";
+		file_out << violation_d[i] << ",";
+		file_out << std::abs(history_d_p[i] - exact_gomez_levy) << ",";
+		file_out << violation_d_p[i] << std::endl;
 	}
 
 	// Close the file

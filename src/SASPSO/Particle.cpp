@@ -142,6 +142,8 @@ bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1,
     else if (viol1 <= (violation_threshold - tol) && viol2 <= (violation_threshold - tol))
         return value1 < value2;
     // if both are infeasible, better has the smaller total violation
-    else
+    else{
+        std::cout << "both are infeasible\n";
         return viol1 < (viol2 - tol);
+    }
 }

@@ -127,7 +127,7 @@ public:
 	 * @return true if the particle is better than the other
 	 * @return false otherwise
 	 */
-	bool is_better_than(const Particle<dim> &other, double violation_threshold, double tol=1e-8) const;
+	bool is_better_than(const Particle<dim> &other, double violation_threshold, double tol) const;
 
 private:
 	/**

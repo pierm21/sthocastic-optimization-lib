@@ -56,9 +56,9 @@ public:
 	 */
 	SASPSO(const Problem<dim> &problem,
 		   int swarm_size = 100, int max_iter = 2000, double tol = 1e-6,
-		   const double omega_s = 0.9, const double omega_f = 0.1,
-		   const double phi1_s = 2.5, const double phi1_f = 0.1,
-		   const double phi2_s = 0.1, const double phi2_f = 2.5)
+		   const double omega_s = 0.9, const double omega_f = 0.4,
+		   const double phi1_s = 2.5, const double phi1_f = 0.3,
+		   const double phi2_s = 0.3, const double phi2_f = 2.5)
 		: Optimizer<dim>(problem),
 		  swarm_size_(swarm_size), max_iter_(max_iter), tol_(tol),
 		  omega_s_(omega_s), omega_f_(omega_f),

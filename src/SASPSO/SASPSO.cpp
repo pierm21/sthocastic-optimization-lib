@@ -2,6 +2,7 @@
 
 #include "SASPSO/SASPSO.hpp"
 #include <omp.h>
+#include <iomanip>
 
 template <std::size_t dim>
 void SASPSO<dim>::initialize()
@@ -30,9 +31,6 @@ void SASPSO<dim>::initialize()
 		// Create and initialize the particle
 		swarm_.emplace_back(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
 		swarm_[i].initialize();
-		// Update the global best
-		if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
-			global_best_index_ = i;
 		// Add the constraint violation to the array
 		total_violations.push_back(swarm_[i].get_best_constraint_violation());
 	}
@@ -43,6 +41,13 @@ void SASPSO<dim>::initialize()
 		violation_threshold_ = (total_violations[swarm_size_ / 2] + total_violations[swarm_size_ / 2 - 1]) / 2;
 	else
 		violation_threshold_ = total_violations[swarm_size_ / 2];
+
+	// Update the global best considering the violation threshold
+	for (std::size_t i = 1; i < swarm_size_; ++i)
+	{
+		if (swarm_[i].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
+			global_best_index_ = i;
+	}
 }
 
 template <std::size_t dim>
@@ -81,6 +86,15 @@ void SASPSO<dim>::initialize_parallel()
 			// Add the constraint violation to the array
 			total_violations[i] = swarm_[i].get_best_constraint_violation();
 		}
+#pragma omp single
+		{
+			// Initialize the violation threshold as the median of the total violations
+			std::sort(total_violations.begin(), total_violations.end());
+			if (swarm_size_ % 2 == 0)
+				violation_threshold_ = (total_violations[swarm_size_ / 2] + total_violations[swarm_size_ / 2 - 1]) / 2;
+			else
+				violation_threshold_ = total_violations[swarm_size_ / 2];
+		}
 
 		// Initialize the thread local best index
 		std::size_t local_best_index = global_best_index_;
@@ -89,25 +103,17 @@ void SASPSO<dim>::initialize_parallel()
 #pragma omp for nowait schedule(static)
 		for (std::size_t i = 1; i < swarm_size_; ++i)
 		{
-			if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
+			if (swarm_[i].is_better_than(swarm_[local_best_index], violation_threshold_, tol_))
 				local_best_index = i;
 		}
 
-		// Each thread updates the global best index if it has a better solution
+		// Reduction: Each thread updates the global best index if it has a better solution
 #pragma omp critical(update_global_best_init)
 		{
-			if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+			if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
 				global_best_index_ = local_best_index;
 		}
 	}
-
-	// Initialize the violation threshold as the median of the total violations
-	// TODO: sort parallel
-	std::sort(total_violations.begin(), total_violations.end());
-	if (swarm_size_ % 2 == 0)
-		violation_threshold_ = (total_violations[swarm_size_ / 2] + total_violations[swarm_size_ / 2 - 1]) / 2;
-	else
-		violation_threshold_ = total_violations[swarm_size_ / 2];
 }
 
 template <std::size_t dim>
@@ -125,19 +131,19 @@ void SASPSO<dim>::optimize()
 		for (size_t i = 0; i < swarm_size_; ++i)
 		{
 			// Update the particle
-			swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+			swarm_[i].update(swarm_[global_best_index_].get_best_position(), violation_threshold_, current_iter, max_iter_, tol_);
 			// Check if the particle is feasible
 			if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
-			{
 				feasible_particles++;
-				// Update global best position
-				if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
-					global_best_index_ = i;
-			}
 		}
 
 		// Update the violation threshold according to the proportion of feasible particles
-		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
+		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+
+		// Update the global best position
+		for (std::size_t i = 0; i < swarm_size_; ++i)
+			if (swarm_[i].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
+				global_best_index_ = i;
 
 		// Update the current iteration
 		current_iter++;
@@ -152,8 +158,6 @@ void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<dou
 	// Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
 	{
-		// std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
-
 		// Reset the number of feasible particles for the current iteration
 		int feasible_particles = 0;
 
@@ -161,26 +165,28 @@ void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<dou
 		for (size_t i = 0; i < swarm_size_; ++i)
 		{
 			// Update the particle
-			swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+			swarm_[i].update(swarm_[global_best_index_].get_best_position(), violation_threshold_, current_iter, max_iter_, tol_);
 			// Check if the particle is feasible
 			if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
-			{
 				feasible_particles++;
-				// Update global best position
-				if (swarm_[i].is_better_than(swarm_[global_best_index_], tol_))
-					global_best_index_ = i;
-			}
 		}
+
+		// Update the violation threshold according to the proportion of feasible particles
+		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+
+		// Update the global best position
+		for (std::size_t i = 0; i < swarm_size_; ++i)
+			if (swarm_[i].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
+				global_best_index_ = i;
 
 		// Store current global best value in history
 		if (current_iter % interval == 0)
 		{
 			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
 			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
+			// TODO: remove print
+			std::cout << std::setprecision(10) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 		}
-
-		// Update the violation threshold according to the proportion of feasible particles
-		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
 
 		// Update the current iteration
 		current_iter++;
@@ -204,31 +210,39 @@ void SASPSO<dim>::optimize_parallel()
 		{
 			// Initialize the thread local best index
 			int local_best_index = global_best_index_;
-			// Process each particle subdividing them among all threads
-#pragma omp for nowait schedule(static) reduction(+ : feasible_particles)
+
+			// Process each particle subdividing them among all threads reducting the number of feasible particles
+#pragma omp for schedule(static) reduction(+ : feasible_particles)
 			for (size_t i = 0; i < swarm_size_; ++i)
 			{
 				//  Update the particle
-				swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+				swarm_[i].update(swarm_[global_best_index_].get_best_position(), violation_threshold_, current_iter, max_iter_, tol_);
 				// Check if the particle is feasible
 				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
-				{
 					feasible_particles++;
-					// Update local best position
-					if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
-						local_best_index = i;
-				}
 			}
+
+			// Update the violation threshold according to the proportion of feasible particles
+#pragma omp single
+			{
+				violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+			}
+
+			// Update local best position
+#pragma omp for nowait schedule(static)
+			for (size_t i = 0; i < swarm_size_; ++i)
+			{
+				if (swarm_[i].is_better_than(swarm_[local_best_index], violation_threshold_, tol_))
+					local_best_index = i;
+			}
+
 			// Each thread updates the global best index if it has a better solution
 #pragma omp critical(update_global_best_opt)
 			{
-				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
 					global_best_index_ = local_best_index;
 			}
 		}
-
-		// Update the violation threshold according to the proportion of feasible particles
-		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
 
 		// Update the current iteration
 		current_iter++;
@@ -252,32 +266,39 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 		{
 			// Initialize the thread local best index
 			int local_best_index = global_best_index_;
+
 			// Process each particle subdividing them among all threads
 #pragma omp for nowait schedule(static) reduction(+ : feasible_particles)
 			for (size_t i = 0; i < swarm_size_; ++i)
 			{
 				//  Update the particle
-				swarm_[i].update(swarm_[global_best_index_].get_best_position(), current_iter, max_iter_, tol_);
+				swarm_[i].update(swarm_[global_best_index_].get_best_position(), violation_threshold_, current_iter, max_iter_, tol_);
 				// Check if the particle is feasible
 				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
-				{
 					feasible_particles++;
-					// Update local best position
-					if (swarm_[i].is_better_than(swarm_[local_best_index], tol_))
-						local_best_index = i;
-				}
 			}
+
+			// Update the violation threshold according to the proportion of feasible particles
+#pragma omp single
+			{
+				violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
+			}
+
+			// Update local best position
+#pragma omp for nowait schedule(static)
+			for (size_t i = 0; i < swarm_size_; ++i)
+			{
+				if (swarm_[i].is_better_than(swarm_[local_best_index], violation_threshold_, tol_))
+					local_best_index = i;
+			}
+
 			// Each thread updates the global best index if it has a better solution
 #pragma omp critical(update_global_best_opt)
 			{
-				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], tol_))
+				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
 					global_best_index_ = local_best_index;
 			}
 		}
-
-		// Update the violation threshold according to the proportion of feasible particles
-		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
-
 		// Store current global best value and violation in history
 		if (current_iter % interval == 0)
 		{

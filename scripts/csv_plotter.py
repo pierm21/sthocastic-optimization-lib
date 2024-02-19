@@ -44,7 +44,7 @@ if sys.argv[1] == "saspso_error_iterations.csv":
 	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
 
 	# error plot
-	ax = sns.lineplot(ax=axes[0], data=data[['TS_err','TS_p_err','GL_err','GL_p_err']], linewidth=3, legend=True)
+	ax = sns.lineplot(ax=axes[0], data=data[['static_err','static_p_err','dynamic_err','dynamic_p_err']], linewidth=3, legend=True)
 	ax.set_yscale('symlog', linthresh=1e-16)	# Needed for having a log scale showing 0
 	ax.set_ylim(bottom=-1e-16)
 	ax.set_ylabel("Error", fontsize=16)
@@ -52,9 +52,11 @@ if sys.argv[1] == "saspso_error_iterations.csv":
 	#ax.legend(['Townsend', 'Townsend Parallel', 'Gomez-Levy', 'Gomez-Levy Parallel'])
 
 	# constraint violation plot
-	ax = sns.lineplot(ax=axes[1], data=data[['TS_viol','TS_p_viol','GL_viol','GL_p_viol']], linewidth=3)
+	ax = sns.lineplot(ax=axes[1], data=data[['static_viol','static_p_viol','static_viol','static_p_viol']], linewidth=3)
 	ax.set_ylabel("Constraint Violation", fontsize=16)
 	ax.set_xlabel("Iterations", fontsize=16)
+	ax.set_yscale('symlog', linthresh=1e-16)	# Needed for having a log scale showing 0
+	ax.set_ylim(bottom=-1e-16)
 	#ax.legend(['Townsend', 'Townsend Parallel', 'Gomez-Levy', 'Gomez-Levy Parallel'])
 
 	# set axis where to put the title
