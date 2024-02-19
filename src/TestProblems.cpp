@@ -31,7 +31,7 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 
 		return problem;
 	}
-	else if (p == GOMEZ_LEVY && dim == 8)
+	else if (p == GOMEZ_LEVY && dim == 2)
 	{
 		auto f = [](const RealVector<dim> &x)
 		{
@@ -59,7 +59,7 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 
 		return problem;
 	}
-	else if (p == G10 && dim == 8)
+	/*else if (p == _G10 && dim == 8)
 	{
 		auto f = [](const RealVector<dim> &x)
 		{
@@ -108,7 +108,7 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret; });
 
 		return problem;
-	}
+	}*/
 	else throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \
 			Check if the dim template parameter is consistent with the specified problem.");
@@ -125,10 +125,10 @@ double TestProblems::get_exact_value(ProblemName p)
 	{
 		return -1.031628453;
 	}
-	else if (p == G10 && dim == 8)
+	/*else if (p == _G10 && dim == 8)
 	{
 		return 7049.248;
-	}
+	}*/
 	else
 		throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \
@@ -146,10 +146,10 @@ RealVector<dim> TestProblems::get_exact_position(ProblemName p)
 	{
 		return RealVector<dim>(0.089842010, -0.7126564);
 	}
-	else if (p == G10 && dim == 8)
+	/*else if (p == _G10 && dim == 8)
 	{
-		return RealVector<dim>(579.3167,1359.943,5110.71,182.0714,295.5985,217.979,286.4162,395.5979);
-	}
+		return RealVector<dim>(579.3167, 1359.943, 5110.71, 182.0714, 295.5985, 217.979, 286.4162, 395.5979);
+	}*/
 	else
 		throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \

@@ -24,7 +24,7 @@ void Particle<dim>::initialize()
 }
 
 template <std::size_t dim>
-void Particle<dim>::update(const RealVector<dim> &global_best_position, int iteration, int max_iter, double tol)
+void Particle<dim>::update(const RealVector<dim> &global_best_position, double violation_threshold, int iteration, int max_iter, double tol)
 {
     // Compute beta avoiding division by zero
     double beta = (global_best_position - best_position_).norm();
@@ -70,12 +70,12 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, int iter
             position_[i] = problem_->get_upper_bound(i);
     }
 
-    // Update the total constraint violation
+    // Update the total constraint violation in the actual position
     update_constraint_violation();
 
     // Update the personal best position, value, and violation following the feasibility-based rule
     double current_value = problem_->get_fitness_function()(position_);
-    if (feasibility_rule(current_value, best_value_, constraint_violation_, best_constraint_violation_, tol))
+    if (feasibility_rule(current_value, best_value_, constraint_violation_, best_constraint_violation_, violation_threshold, tol))
     {
         best_position_ = position_;
         best_value_ = current_value;
@@ -87,21 +87,21 @@ template <std::size_t dim>
 void Particle<dim>::print(std::ostream &out) const
 {
     out << "Position: (";
-	for (std::size_t i = 0; i < dim; ++i)
-		out << position_[i] << ", ";
-	out << "\b\b)" << std::endl;
+    for (std::size_t i = 0; i < dim; ++i)
+        out << position_[i] << ", ";
+    out << "\b\b)" << std::endl;
 
     out << "Velocity: (";
-	for (std::size_t i = 0; i < dim; ++i)
-		out << velocity_[i] << ", ";
-	out << "\b\b)" << std::endl;
+    for (std::size_t i = 0; i < dim; ++i)
+        out << velocity_[i] << ", ";
+    out << "\b\b)" << std::endl;
 
     out << "Constraint violation:\t" << constraint_violation_ << std::endl;
 
     out << "Best position: (";
-	for (std::size_t i = 0; i < dim; ++i)
-		out << best_position_[i] << ", ";
-	out << "\b\b)" << std::endl;
+    for (std::size_t i = 0; i < dim; ++i)
+        out << best_position_[i] << ", ";
+    out << "\b\b)" << std::endl;
 
     out << "Best value:\t" << best_value_ << std::endl;
 
@@ -109,9 +109,10 @@ void Particle<dim>::print(std::ostream &out) const
 }
 
 template <size_t dim>
-bool Particle<dim>::is_better_than(const Particle<dim> &other, double tol) const
+bool Particle<dim>::is_better_than(const Particle<dim> &other, double violation_threshold, double tol) const
 {
-	return feasibility_rule(best_value_, other.get_best_value(), best_constraint_violation_, other.get_best_constraint_violation(), tol);
+    return feasibility_rule(best_value_, other.get_best_value(), best_constraint_violation_,
+                            other.get_best_constraint_violation(), violation_threshold, tol);
 }
 
 template <size_t dim>
@@ -128,15 +129,19 @@ void Particle<dim>::update_constraint_violation()
 }
 
 template <size_t dim>
-bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double tol) const
+bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double violation_threshold, double tol) const
 {
-    if (viol1 < viol2 - tol)
+    if(violation_threshold <= tol)
+        tol = 0;
+    // check if one is feasible and if the other is not
+    if (viol1 <= (violation_threshold - tol) && viol2 > (violation_threshold + tol))
         return true;
-    else if (viol1 > viol2 + tol)
+    else if (viol1 > (violation_threshold + tol) && viol2 <= (violation_threshold - tol))
         return false;
-    // they have the same total violation value up to a tolearance tol
-    else if (value1 < value2)
-        return true;
+    // check if both are feasible, then the better one has the smaller value
+    else if (viol1 <= (violation_threshold - tol) && viol2 <= (violation_threshold - tol))
+        return value1 < value2;
+    // if both are infeasible, better has the smaller total violation
     else
-        return false;
+        return viol1 < (viol2 - tol);
 }
