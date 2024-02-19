@@ -86,10 +86,11 @@ public:
 	/**
 	 * @brief Optimize the given problem and store the history of the best value found every interval iterations
 	 *
-	 * @param history the vector where to store the history of the best value found
+	 * @param optimum_history the vector where to store the history of the best value found
+	 * @param violation_history the vector where to store the history of the best contraint violation found
 	 * @param interval the sampling interval in number of iterations
 	 */
-	void optimize(std::vector<double> &history, const int interval = 50);
+	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval = 50);
 
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs
@@ -99,10 +100,11 @@ public:
 	/**
 	 * @brief Optimize the given problem using OMP thread parallelism and store the history of the best value found every interval iterations
 	 *
-	 * @param history the vector where to store the history of the best value found
+	 * @param optimum_history the vector where to store the history of the best value found
+	 * @param violation_history the vector where to store the history of the best contraint violation found
 	 * @param interval the sampling interval in number of iterations
 	 */
-	void optimize_parallel(std::vector<double> &history, const int interval = 50);
+	void optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval = 50);
 
 	/**
 	 * @brief Print the results of the optimization process to the given output stream

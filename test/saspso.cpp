@@ -84,35 +84,36 @@ int error_iterations_test()
 	}
 
 	// Write comments and header
-	file_out << "# Error as function of performed iterations for Townsend and Gomez-Levy problems" << std::endl;
+	file_out << "# Error and constraints violation over performed iterations" << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
 	file_out << "# Particles: " << particles << std::endl;
 	file_out << "# Tolerance: " << tol << std::endl;
+	file_out << "# TS=Townsend, GL=Gomez-Levy" << std::endl;
 
-	file_out << "Iterations,Townsend,Townsend_parallel,Gomez-Levy,Gomez-Levy_parallel" << std::endl;
+	file_out << "Iters,TS_err,TS_viol,TS_p_err,TS_p_viol,GL_err,GL_viol,GL_p_err,GL_p_viol" << std::endl;
 
 	// Initialize history and log_interval
-	std::vector<double> history_townsend;
-	std::vector<double> history_gomez_levy;
-	std::vector<double> history_townsend_p;
-	std::vector<double> history_gomez_levy_p;
+	std::vector<double> history_townsend, violation_townsend;
+	std::vector<double> history_gomez_levy, violation_gomez_levy;
+	std::vector<double> history_townsend_p, violation_townsend_p;
+	std::vector<double> history_gomez_levy_p, violation_gomez_levy_p;
 
 	// Optimize the problems. We need to use a pointer for the specialized class
 	std::unique_ptr<SASPSO<2>> opt = std::make_unique<SASPSO<2>>(gomez_levy, particles, iter, tol);
 	opt->initialize();
-	opt->optimize(history_gomez_levy, log_interval);
+	opt->optimize(history_gomez_levy, violation_gomez_levy, log_interval);
 
 	opt = std::make_unique<SASPSO<2>>(gomez_levy, particles, iter, tol);
 	opt->initialize_parallel();
-	opt->optimize_parallel(history_gomez_levy_p, log_interval);
+	opt->optimize_parallel(history_gomez_levy_p, violation_gomez_levy_p, log_interval);
 
 	opt = std::make_unique<SASPSO<2>>(townsend, particles, iter, tol);
 	opt->initialize();
-	opt->optimize(history_townsend, log_interval);
+	opt->optimize(history_townsend, violation_townsend, log_interval);
 
 	opt = std::make_unique<SASPSO<2>>(townsend, particles, iter, tol);
 	opt->initialize_parallel();
-	opt->optimize_parallel(history_townsend_p, log_interval);
+	opt->optimize_parallel(history_townsend_p, violation_townsend_p, log_interval);
 
 	// Print the history vectors size
 	std::cout << "Townsend history size: " << history_townsend.size() << std::endl;
@@ -129,9 +130,13 @@ int error_iterations_test()
 	{
 		file_out << i * log_interval << ",";
 		file_out << std::abs(history_townsend[i] - exact_townsend) << ",";
+		file_out << violation_townsend[i] << ",";
 		file_out << std::abs(history_townsend_p[i] - exact_townsend) << ",";
+		file_out << violation_townsend_p[i] << ",";
 		file_out << std::abs(history_gomez_levy[i] - exact_gomez_levy) << ",";
-		file_out << std::abs(history_gomez_levy_p[i] - exact_gomez_levy) << std::endl;
+		file_out << violation_gomez_levy[i] << ",";
+		file_out << std::abs(history_gomez_levy_p[i] - exact_gomez_levy) << ",";
+		file_out << violation_gomez_levy_p[i] << std::endl;
 	}
 
 	// Close the file

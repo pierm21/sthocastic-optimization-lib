@@ -23,8 +23,6 @@ filepath = path.abspath(path.join(basepath, "..", "output", sys.argv[1]))
 # Read the CSV file using pandas
 data = pd.read_csv(filepath, comment='#', index_col=0)
 
-plt.figure(figsize=(12, 10))
-
 # Compose the title from the comments
 title = ""
 description = "("
@@ -35,18 +33,35 @@ with open(filepath, 'r') as f:
 			description += line[1:].strip() + ", "
 	description = description[:-2] + ")"
 
+
+#plt.figure(figsize=(12, 10))
 sns.set_style("darkgrid")
 ax = None
 
-# Plot for the error_iteration.csv
+
+# ====== Plot for the error_iteration.csv ======
 if sys.argv[1] == "saspso_error_iterations.csv":
-	ax = sns.lineplot(data=data, linewidth=3)
+	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
+
+	# error plot
+	ax = sns.lineplot(ax=axes[0], data=data[['TS_err','TS_p_err','GL_err','GL_p_err']], linewidth=3, legend=True)
 	ax.set_yscale('symlog', linthresh=1e-16)	# Needed for having a log scale showing 0
 	ax.set_ylim(bottom=-1e-16)
 	ax.set_ylabel("Error", fontsize=16)
 	ax.set_xlabel("Iterations", fontsize=16)
+	#ax.legend(['Townsend', 'Townsend Parallel', 'Gomez-Levy', 'Gomez-Levy Parallel'])
 
-# Plot for the time_numparticles.csv
+	# constraint violation plot
+	ax = sns.lineplot(ax=axes[1], data=data[['TS_viol','TS_p_viol','GL_viol','GL_p_viol']], linewidth=3)
+	ax.set_ylabel("Constraint Violation", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	#ax.legend(['Townsend', 'Townsend Parallel', 'Gomez-Levy', 'Gomez-Levy Parallel'])
+
+	# set axis where to put the title
+	ax = axes[0]
+
+
+# ====== Plot for the time_numparticles.csv ======
 # TODO: update the plot to show the speedup
 elif sys.argv[1] == "time_numparticles.csv":
 	ax = sns.lineplot(data=data.Serial_time, color='blue', linewidth=3)
@@ -59,6 +74,9 @@ elif sys.argv[1] == "time_numparticles.csv":
 	ax.set_ylabel("Time (ms)", fontsize=16)
 	ax2.set_ylabel("Speedup", fontsize=16)
 	ax.set_xlabel("Number of particles", fontsize=16)
+
+
+# ====== If the csv is not recognized ======
 else:
 	print("File not supported.")
 	exit()

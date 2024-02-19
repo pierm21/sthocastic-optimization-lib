@@ -145,10 +145,9 @@ void SASPSO<dim>::optimize()
 }
 
 template <std::size_t dim>
-void SASPSO<dim>::optimize(std::vector<double> &history, const int interval)
+void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval)
 {
 	int current_iter = 0;
-	int feasible_particles = 0;
 
 	// Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
@@ -156,7 +155,7 @@ void SASPSO<dim>::optimize(std::vector<double> &history, const int interval)
 		// std::cout << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 
 		// Reset the number of feasible particles for the current iteration
-		feasible_particles = 0;
+		int feasible_particles = 0;
 
 		// Process each particle of the swarm
 		for (size_t i = 0; i < swarm_size_; ++i)
@@ -175,7 +174,10 @@ void SASPSO<dim>::optimize(std::vector<double> &history, const int interval)
 
 		// Store current global best value in history
 		if (current_iter % interval == 0)
-			history.push_back(swarm_[global_best_index_].get_best_value());
+		{
+			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
+			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
+		}
 
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
@@ -234,7 +236,7 @@ void SASPSO<dim>::optimize_parallel()
 }
 
 template <std::size_t dim>
-void SASPSO<dim>::optimize_parallel(std::vector<double> &history, const int interval)
+void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval)
 {
 	int current_iter = 0;
 
@@ -276,12 +278,15 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &history, const int inte
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
 
+		// Store current global best value and violation in history
+		if (current_iter % interval == 0)
+		{
+			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
+			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
+		}
+
 		// Update the current iteration
 		current_iter++;
-
-		// Store current global best value in history
-		if (current_iter % interval == 0)
-			history.push_back(swarm_[global_best_index_].get_best_value());
 	}
 }
 
