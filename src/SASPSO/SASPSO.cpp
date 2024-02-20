@@ -185,7 +185,7 @@ void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<dou
 			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
 			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
 			// TODO: remove print
-			std::cout << std::setprecision(10) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
+			std::cout << std::setprecision(20) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 		}
 
 		// Update the current iteration
@@ -314,7 +314,7 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 template <std::size_t dim>
 void SASPSO<dim>::print_results(std::ostream &out)
 {
-	out << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
+	out << std::setprecision(20) << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
 	out << "Best position: (";
 	for (std::size_t i = 0; i < dim; ++i)
 		out << swarm_[global_best_index_].get_best_position()[i] << ", ";

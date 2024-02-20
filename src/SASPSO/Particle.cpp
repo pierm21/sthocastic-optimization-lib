@@ -131,19 +131,18 @@ void Particle<dim>::update_constraint_violation()
 template <size_t dim>
 bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double violation_threshold, double tol) const
 {
-    if(violation_threshold <= tol)
-        tol = 0;
+    double ub = violation_threshold + tol;
+    double lb = std::max(violation_threshold - tol, 0.0);
+
     // check if one is feasible and if the other is not
-    if (viol1 <= (violation_threshold - tol) && viol2 > (violation_threshold + tol))
+    if (viol1 <= lb && viol2 > ub)
         return true;
-    else if (viol1 > (violation_threshold + tol) && viol2 <= (violation_threshold - tol))
+    else if (viol1 > ub && viol2 <= lb)
         return false;
     // check if both are feasible, then the better one has the smaller value
-    else if (viol1 <= (violation_threshold - tol) && viol2 <= (violation_threshold - tol))
+    else if (viol1 <= lb && viol2 <= lb)
         return value1 < value2;
     // if both are infeasible, better has the smaller total violation
-    else{
-        std::cout << "both are infeasible\n";
+    else
         return viol1 < (viol2 - tol);
-    }
 }

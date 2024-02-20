@@ -34,17 +34,16 @@ with open(filepath, 'r') as f:
 	description = description[:-2] + ")"
 
 
-#plt.figure(figsize=(12, 10))
 sns.set_style("darkgrid")
 ax = None
 
 
 # ====== Plot for the error_iteration.csv ======
-if sys.argv[1] == "saspso_error_iterations.csv":
+if sys.argv[1] == "saspso_static_adaptive.csv":
 	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
 
 	# error plot
-	ax = sns.lineplot(ax=axes[0], data=data[['static_err','static_p_err','dynamic_err','dynamic_p_err']], linewidth=3, legend=True)
+	ax = sns.lineplot(ax=axes[0], data=data[['static_err','static_p_err','adaptive_err','adaptive_p_err']], linewidth=3, legend=True)
 	ax.set_yscale('symlog', linthresh=1e-16)	# Needed for having a log scale showing 0
 	ax.set_ylim(bottom=-1e-16)
 	ax.set_ylabel("Error", fontsize=16)
@@ -52,7 +51,7 @@ if sys.argv[1] == "saspso_error_iterations.csv":
 	#ax.legend(['Townsend', 'Townsend Parallel', 'Gomez-Levy', 'Gomez-Levy Parallel'])
 
 	# constraint violation plot
-	ax = sns.lineplot(ax=axes[1], data=data[['static_viol','static_p_viol','static_viol','static_p_viol']], linewidth=3)
+	ax = sns.lineplot(ax=axes[1], data=data[['static_viol','static_p_viol','adaptive_viol','adaptive_p_viol']], linewidth=3)
 	ax.set_ylabel("Constraint Violation", fontsize=16)
 	ax.set_xlabel("Iterations", fontsize=16)
 	ax.set_yscale('symlog', linthresh=1e-16)	# Needed for having a log scale showing 0
@@ -64,8 +63,8 @@ if sys.argv[1] == "saspso_error_iterations.csv":
 
 
 # ====== Plot for the time_numparticles.csv ======
-# TODO: update the plot to show the speedup
-elif sys.argv[1] == "time_numparticles.csv":
+elif sys.argv[1] == "saspso_time_numparticles.csv":
+	plt.figure(figsize=(12, 10))
 	ax = sns.lineplot(data=data.Serial_time, color='blue', linewidth=3)
 	sns.lineplot(data=data.Parallel_time, color='red', ax=ax, linewidth=3)
 	ax2 = ax.twinx()
