@@ -18,6 +18,7 @@ int serial_parallel_test()
 	// Initialize problem and solver parameters
 	int iter = 5000;
 	int particles = 300;
+	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
 
 	std::cout << "Problem: Gomez Levy" << std::endl;
@@ -26,15 +27,16 @@ int serial_parallel_test()
 
 	// Test the serial version
 	std::cout << "--- Serial optimizer testing ---" << std::endl;
-	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, particles, iter, 1e-10);
+	std::unique_ptr<Optimizer<2>> opt = std::make_unique<SASPSO<2>>(problem, particles, iter, tol);
 	opt->initialize();
 	auto t1 = std::chrono::high_resolution_clock::now();
 	opt->optimize();
 	auto t2 = std::chrono::high_resolution_clock::now();
 	opt->print_results();
-	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
-	std::cout << "Absolute distance: " << (TestProblems::get_exact_position<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_position()).norm() << std::endl;
-	std::cout << "Elapsed optimization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
+
+	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
+	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_position()).norm() << std::endl;
+	std::cout << std::setprecision(20) << "Elapsed optimization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
 
 	// Yest the parallel version
 	std::cout << "--- Parallel optimizer testing ---" << std::endl;
@@ -50,24 +52,24 @@ int serial_parallel_test()
 	saspso_ptr->optimize_parallel();
 	t2 = std::chrono::high_resolution_clock::now();
 	saspso_ptr->print_results();
-	std::cout << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
-	std::cout << "Absolute distance: " << (TestProblems::get_exact_position<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_position()).norm() << std::endl;
-	std::cout << "Elapsed optimization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
+	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_value()) << std::endl;
+	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<2>(TestProblems::GOMEZ_LEVY) - opt->get_global_best_position()).norm() << std::endl;
+	std::cout << std::setprecision(20) << "Elapsed optimization time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
 	return 0;
 }
 
-int error_iterations_test()
+int static_adaptive_test()
 {
-	constexpr int log_interval = 1;
+	constexpr int log_interval = 10;
 
-	int iter = 300;
-	int particles = 50;
+	int iter = 3000;
+	int particles = 200;
 	double tol = 1e-16;
 	auto gomez_levy = TestProblems::create_problem<dimension>(TestProblems::GOMEZ_LEVY);
 
 	// Preliminary informations to std out
-	std::cout << "Error as function of performed iteration test (static and dynamic)." << std::endl;
-	std::cout << "Logs in /output/saspso_error_iterations.csv every " << log_interval << " iterations." << std::endl;
+	std::cout << "Error as function of performed iteration test (for static and adaptive)." << std::endl;
+	std::cout << "Logs in /output/saspso_static_adaptive.csv every " << log_interval << " iterations." << std::endl;
 
 	std::cout << "Problem: Townsend, Gomez-Levy" << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
@@ -75,7 +77,7 @@ int error_iterations_test()
 
 	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/saspso_error_iterations.csv");
+	file_out.open("../output/saspso_static_adaptive.csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
@@ -83,13 +85,13 @@ int error_iterations_test()
 	}
 
 	// Write comments and header
-	file_out << "# Error and constraints violation over iterations (static/dynamic)" << std::endl;
+	file_out << "# Error and constraints violation over iterations (static vs adaptive)" << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
 	file_out << "# Particles: " << particles << std::endl;
 	file_out << "# Tolerance: " << tol << std::endl;
 	file_out << "# Problem=Gomez-Levy" << std::endl;
 
-	file_out << "Iters,static_err,static_viol,static_p_err,static_p_viol,dynamic_err,dynamic_viol,dynamic_p_err,dynamic_p_viol" << std::endl;
+	file_out << "Iters,static_err,static_viol,static_p_err,static_p_viol,adaptive_err,adaptive_viol,adaptive_p_err,adaptive_p_viol" << std::endl;
 
 	// Initialize history and log_interval
 	std::vector<double> history_s, violation_s;
@@ -147,8 +149,8 @@ int time_numparticles_test()
 {
 	int iter = 3000;
 	double tol = 1e-10;
-	int max_particles = 500;
-	constexpr int log_interval = 10;
+	int max_particles = 1000;
+	constexpr int log_interval = 100;
 	auto gomez_levy = TestProblems::create_problem<dimension>(TestProblems::GOMEZ_LEVY);
 
 	// Preliminary informations to std out
@@ -176,10 +178,10 @@ int time_numparticles_test()
 	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
 	std::cout << "Logging every " << log_interval << " iterations" << std::endl;
 
-	for (int i = 1; i <= max_particles; i += log_interval)
+	for (int i = 100; i <= max_particles; i += log_interval)
 	{
 		// Print progress to stdout
-		if ((i - 1) % (log_interval) == 0)
+		if ((i) % (log_interval) == 0)
 			std::cout << "Starting test with " << i << " particle(s)" << std::endl;
 		// Optimize the problem serially
 		std::unique_ptr<SASPSO<2>> opt = std::make_unique<SASPSO<2>>(gomez_levy, i, iter, tol);
@@ -210,7 +212,7 @@ int main(int argc, char **argv)
 	if (argc != 2)
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
-		std::cout << "Available tests for SASPSO algorithm: error_iterations, serial_parallel, time_numparticles" << std::endl;
+		std::cout << "Available tests for SASPSO algorithm: static_adaptive, serial_parallel, time_numparticles" << std::endl;
 		return -1;
 	}
 	// Create if it not exist the output directory
@@ -218,8 +220,8 @@ int main(int argc, char **argv)
 
 	// Get from command line the required test
 	std::string test = argv[1];
-	if (test == "error_iterations")
-		error_iterations_test();
+	if (test == "static_adaptive")
+		static_adaptive_test();
 	else if (test == "serial_parallel")
 		serial_parallel_test();
 	else if (test == "time_numparticles")
@@ -227,7 +229,7 @@ int main(int argc, char **argv)
 	else
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
-		std::cout << "Available tests for SASPSO algorithm: error_iterations, serial_parallel, time_numparticles" << std::endl;
+		std::cout << "Available tests for SASPSO algorithm: static_adaptive, serial_parallel, time_numparticles" << std::endl;
 		return -1;
 	}
 	return 0;
