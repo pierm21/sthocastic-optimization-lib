@@ -41,7 +41,8 @@ void SASPSO<dim>::initialize()
 		violation_threshold_ = (total_violations[swarm_size_ / 2] + total_violations[swarm_size_ / 2 - 1]) / 2;
 	else
 		violation_threshold_ = total_violations[swarm_size_ / 2];
-
+	// TODO: tradeoff with threshold init
+	violation_threshold_ = total_violations[swarm_size_/0.9];
 	// Update the global best considering the violation threshold
 	for (std::size_t i = 1; i < swarm_size_; ++i)
 	{
@@ -154,6 +155,7 @@ template <std::size_t dim>
 void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval)
 {
 	int current_iter = 0;
+	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << "violation threshold" << " | " << "global best index" << std::endl;
 
 	// Outer optimization loop over all the iterations
 	while (current_iter < max_iter_)
@@ -184,7 +186,7 @@ void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<dou
 		{
 			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
 			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
-			// TODO: remove print
+
 			std::cout << std::setprecision(20) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 		}
 
