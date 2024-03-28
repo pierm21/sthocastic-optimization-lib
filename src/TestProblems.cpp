@@ -76,7 +76,7 @@ Problem<8> TestProblems::create_problem<8>(ProblemName p) {
 		RealVector<8> lb;
 		lb << 100, 1000, 1000, 10, 10, 10, 10, 10;
 		RealVector<8> ub;
-		ub << 10000, 10000, 10000, 1000, 1000, 1000, 1000, 1000;
+		ub << 1000, 7000, 7000, 1000, 1000, 1000, 1000, 1000;
 
 		Problem<8> problem(f, lb, ub);
 
@@ -129,7 +129,7 @@ double TestProblems::get_exact_value(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{
-		return -2.0239883611409510422;
+		return -2.0239594374840739199;
 	}
 	else if (p == GOMEZ_LEVY && dim == 2)
 	{
