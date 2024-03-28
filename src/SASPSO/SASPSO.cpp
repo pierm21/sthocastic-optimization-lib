@@ -137,6 +137,7 @@ void SASPSO<dim>::optimize()
 
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+		violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
 
 		// Update the global best position
 		for (size_t i = 0; i < swarm_size_; ++i)
@@ -172,6 +173,7 @@ void SASPSO<dim>::optimize(std::vector<double> &optimum_history, std::vector<dou
 
 		// Update the violation threshold according to the proportion of feasible particles
 		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+		violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
 
 		// Update the global best position
 		for (std::size_t i = 0; i < swarm_size_; ++i)
@@ -225,6 +227,7 @@ void SASPSO<dim>::optimize_parallel()
 #pragma omp single
 			{
 				violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
+				violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
 			}
 
 			// Update local best position
@@ -249,7 +252,7 @@ void SASPSO<dim>::optimize_parallel()
 }
 
 template <std::size_t dim>
-void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval)
+void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, std::vector<double> &threshold_history, const int interval)
 {
 	int current_iter = 0;
 	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << "violation threshold" << " | " << "global best index" << std::endl;
@@ -305,6 +308,8 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 		{
 			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
 			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
+			feasible_history.push_back(feasible_particles);
+			threshold_history.push_back(violation_threshold_);
 
 			std::cout << std::setprecision(20) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
 		}
