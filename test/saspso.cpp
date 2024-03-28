@@ -64,10 +64,10 @@ int serial_parallel_test()
 
 int static_adaptive_test()
 {
-	constexpr int log_interval = 100;
+	constexpr int log_interval = 10;
 
-	int iter = 3000;
-	int particles = 400;
+	int iter = 5000;
+	int particles = 20;
 	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
@@ -121,8 +121,8 @@ int static_adaptive_test()
 	opt1->optimize_parallel(history_s_p, violation_s_p, log_interval);
 
 	// Print the history vectors size
-	std::cout << "Dynamic history size: " << history_d.size() << std::endl;
-	std::cout << "Dynamic parallel history size: " << history_d_p.size() << std::endl;
+	std::cout << "Adaptive history size: " << history_d.size() << std::endl;
+	std::cout << "Adaptive parallel history size: " << history_d_p.size() << std::endl;
 	std::cout << "Static history size: " << history_s.size() << std::endl;
 	std::cout << "Static parallel history size: " << history_s_p.size() << std::endl;
 
@@ -210,6 +210,44 @@ int time_numparticles_test()
 	return 0;
 }
 
+int optimize()
+{
+	constexpr int log_interval = 100;
+
+	int iter = 5000;
+	int particles = 1000;
+	double tol = 1e-16;
+	auto problem = TestProblems::create_problem<dimension>(test_problem);
+
+	// Preliminary informations to std out
+	std::cout << "Parallel adaptive optimization with console only logging" << std::endl;
+
+	std::cout << "Problem: " << problem_name << std::endl;
+	std::cout << "Max iterations: " << iter << std::endl;
+	std::cout << "Num particles: " << particles << std::endl;
+
+	// Initialize history
+	std::vector<double> history, violation;
+
+	std::unique_ptr<Optimizer<dimension>> opt_p = std::make_unique<SASPSO<dimension>>(problem, particles, iter, 1e-10);
+	auto saspso_ptr = dynamic_cast<SASPSO<dimension> *>(opt_p.get());
+	if (!saspso_ptr)
+	{
+		std::cerr << "Error: dynamic_cast failed" << std::endl;
+		return 1;
+	}
+	saspso_ptr->initialize_parallel();
+	saspso_ptr->optimize_parallel(history, violation, log_interval);
+
+	// Get the exact global minimum
+	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
+
+	// Print the final error
+	std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	// Check the number of arguments
@@ -230,11 +268,14 @@ int main(int argc, char **argv)
 		serial_parallel_test();
 	else if (test == "time_numparticles")
 		time_numparticles_test();
+	else if (test == "optimize")
+		optimize();
 	else
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
 		std::cout << "Available tests for SASPSO algorithm: static_adaptive, serial_parallel, time_numparticles" << std::endl;
 		return -1;
 	}
+
 	return 0;
 }

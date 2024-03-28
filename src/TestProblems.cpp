@@ -101,19 +101,19 @@ Problem<8> TestProblems::create_problem<8>(ProblemName p) {
 		problem.add_inequality_constraint([](const RealVector<8> &x)
 										  {
 			double ret = - x[0] * x[5];
-			ret += 833.33252 * x[3] + 100 * x[0] - 83333.333;
+			ret += 833.33252 * x[3] + 100.0 * x[0] - 83333.333;
 			return ret; });
 
 		problem.add_inequality_constraint([](const RealVector<8> &x)
 										  {
 			double ret = - x[1] * x[6];
-			ret += 1250 * x[4] + x[1] * x[3] - 1250 * x[3];
+			ret += 1250.0 * x[4] + x[1] * x[3] - 1250.0 * x[3];
 			return ret; });
 
 		problem.add_inequality_constraint([](const RealVector<8> &x)
 										  {
 			double ret = - x[2] * x[7];
-			ret += 1250000 + x[2] * x[4] - 2500 * x[4];
+			ret += 1250000.0 + x[2] * x[4] - 2500.0 * x[4];
 			return ret; });
 
 		return problem;
@@ -129,7 +129,7 @@ double TestProblems::get_exact_value(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{
-		return -2.0239883619015870408;
+		return -2.0239883611409510422;
 	}
 	else if (p == GOMEZ_LEVY && dim == 2)
 	{
@@ -137,7 +137,7 @@ double TestProblems::get_exact_value(ProblemName p)
 	}
 	else if (p == G10 && dim == 8)
 	{
-		return 7049.3307;
+		return 7049.248;
 	}
 	else
 		throw std::runtime_error("Problem not implemented.\n \
@@ -168,7 +168,7 @@ RealVector<8> TestProblems::get_exact_position<8>(ProblemName p)
 	if (p == G10)
 	{
 		RealVector<8> ret;
-		ret << 579.3167, 1359.943, 5110.071, 182.0174, 295.5985, 217.9799, 286.4162,395.5979;
+		ret << 579.3167, 1359.943, 5110.071, 182.0174, 295.5985, 217.9799, 286.4162, 395.5979;
 		return ret;
 	}
 	else
