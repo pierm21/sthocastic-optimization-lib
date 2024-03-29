@@ -15,8 +15,8 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-2.25, -2.5);
-		RealVector<dim> ub(2.25, 1.75);
+		RealVector<dim> lb(-10.25, -10.5);
+		RealVector<dim> ub(10.25, 10.75);
 
 		Problem<dim> problem(f, lb, ub);
 
@@ -44,8 +44,8 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-1, -1);
-		RealVector<dim> ub(0.75, 1);
+		RealVector<dim> lb(-10, -10);
+		RealVector<dim> ub(100.75, 100);
 
 		Problem<dim> problem(f, lb, ub);
 
@@ -55,6 +55,20 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			ret -= std::sin(4 * M_PI * x[0]);
 			ret += 2.0 * std::sin(2 * M_PI * x[1]) * std::sin(2 * M_PI * x[1]);
 			ret -= 1.5;
+			return ret; });
+
+		problem.add_inequality_constraint([](const RealVector<dim> &x)
+										  {
+			double ret = 0;
+			ret += x[0] + x[1];
+			ret -= 6.0;
+			return ret; });
+
+		problem.add_inequality_constraint([](const RealVector<dim> &x)
+										  {
+			double ret = 0;
+			ret -= (x[0] + x[1]);
+			ret -= 6.0;
 			return ret; });
 
 		return problem;
@@ -129,7 +143,7 @@ double TestProblems::get_exact_value(ProblemName p)
 {
 	if (p == TOWNSEND && dim == 2)
 	{
-		return -2.0239594374840739199;
+		return -2.0239883206412607741;
 	}
 	else if (p == GOMEZ_LEVY && dim == 2)
 	{

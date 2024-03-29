@@ -64,10 +64,10 @@ int serial_parallel_test()
 
 int static_adaptive_test()
 {
-	constexpr int log_interval = 200;
+	constexpr int log_interval = 10;
 
-	int iter = 20000;
-	int particles = 2000;
+	int iter = 2300;
+	int particles = 200;
 	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
@@ -152,10 +152,10 @@ int static_adaptive_test()
 // test the time as function of the number of particles
 int time_numparticles_test()
 {
-	int iter = 1000;
+	int iter = 2000;
 	double tol = 1e-10;
 	int max_particles = 2000;
-	constexpr int log_interval = 100;
+	constexpr int log_interval = 50;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
 	// Preliminary informations to std out
@@ -165,6 +165,14 @@ int time_numparticles_test()
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
 	std::cout << "Log interval: " << log_interval << std::endl;
+
+	// Get the number of omp threads
+	int tot_threads = 0;
+#pragma omp parallel
+	{
+#pragma omp single
+		tot_threads = omp_get_num_threads();
+	}
 
 	// Initialize the file
 	std::ofstream file_out;
@@ -178,6 +186,7 @@ int time_numparticles_test()
 	file_out << "# Execution time as function of the swarm size" << std::endl;
 	file_out << "# Problem: " << problem_name << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
+	file_out << "# Threads: " << tot_threads << std::endl;
 	file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
 
 	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
@@ -194,12 +203,13 @@ int time_numparticles_test()
 		auto t1 = std::chrono::high_resolution_clock::now();
 		opt->optimize();
 		auto t2 = std::chrono::high_resolution_clock::now();
-		// Optimize in parallel
+		// Optimize parallel
 		opt = std::make_unique<SASPSO<dimension>>(problem, i, iter, tol);
 		opt->initialize_parallel();
 		auto t3 = std::chrono::high_resolution_clock::now();
 		opt->optimize_parallel();
 		auto t4 = std::chrono::high_resolution_clock::now();
+
 		// Write data to file
 		file_out << i << ",";
 		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
@@ -215,7 +225,7 @@ int optimize()
 {
 	constexpr int log_interval = 100;
 
-	int iter = 10000;
+	int iter = 20000;
 	int particles = 5000;
 	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
@@ -248,7 +258,7 @@ int optimize()
 	}
 
 	// Write comments and header
-	file_out << "# Error and constraints violation over iterations (static vs adaptive)" << std::endl;
+	file_out << "# Fitness, constraints violation and feasible particles over iterations" << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
 	file_out << "# Particles: " << particles << std::endl;
 	file_out << "# Tolerance: " << tol << std::endl;
@@ -264,6 +274,7 @@ int optimize()
 
 	// Print the final error
 	std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+	std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
 
 	// Store on file
 	for (int i = 0; i < history.size(); i++)

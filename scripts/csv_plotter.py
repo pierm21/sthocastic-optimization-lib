@@ -77,6 +77,42 @@ elif sys.argv[1] == "saspso_time_numparticles.csv":
 	ax.set_xlabel("Number of particles", fontsize=16)
 
 
+# ====== Plot for the optimize.csv ======
+elif sys.argv[1] == "saspso_optimize.csv":
+	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
+
+	# error plot
+	ax = sns.lineplot(ax=axes[0], data=data[['value']], linewidth=3, legend=True)
+	ax.set_yscale('linear')
+	#ax.set_ylim(bottom=-1e-16)
+	ax.set_ylabel("Value", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.legend(fontsize=14)
+
+	# constraint violation plot
+	ax = sns.lineplot(ax=axes[1], data=data[['violation']], linewidth=3, legend=False)
+	ax = sns.lineplot(ax=axes[1], data=data[['threshold']], linewidth=3, palette=['r',], alpha=0.5, legend=False)
+	ax.set_ylabel("Constraint Violation", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.set_yscale('symlog', linthresh=1e-3)
+	ax.set_ylim(bottom=-1e-3, top=10)
+	ax.set_xlim(left=-100, right=12000)
+
+	# feasible particles plot as twin of the constraint violation plot
+	ax = sns.lineplot(ax=axes[1].twinx(), data=data[['feasible_particles']], linewidth=3, palette=['g',], legend=False)
+	ax.set_ylabel("Feasible Particles", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.set_yscale('symlog', linthresh=50)
+
+	ax.legend(handles=[Line2D([], [], marker='_', color='blue', label='Total Violation'),
+					   Line2D([], [], marker='_', color='red',  label='Violation Threshold'),
+					   Line2D([], [], marker='_', color='green',  label='Feasible Particles')],
+					   fontsize=14)
+
+	# set axis where to put the title
+	ax = axes[0]
+
+
 # ====== If the csv is not recognized ======
 else:
 	print("File not supported.")

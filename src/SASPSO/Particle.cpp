@@ -134,7 +134,6 @@ void Particle<dim>::update_constraint_violation()
 template <size_t dim>
 bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double violation_threshold, double tol) const
 {
-    // TODO: check if the tolerance is necessary
     double ub = violation_threshold + tol;
     double lb = std::max(violation_threshold - tol, 0.0);
 
