@@ -223,7 +223,7 @@ int time_numparticles_test()
 
 int optimize()
 {
-	constexpr int log_interval = 100;
+	constexpr int log_interval = 50;
 
 	int iter = 20000;
 	int particles = 5000;

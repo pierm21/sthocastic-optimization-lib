@@ -279,14 +279,14 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 				// Check if the particle is feasible
 				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
 					feasible_particles++;
-			}
+			} // implicit barrier
 
 			// Update the violation threshold according to the proportion of feasible particles
 #pragma omp single
 			{
 				violation_threshold_ = violation_threshold_ * (1 - (feasible_particles / (double)swarm_size_));
 				violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
-			}
+			} // implicit barrier
 
 			// Update local best position
 #pragma omp for nowait schedule(static)
@@ -301,7 +301,7 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 			{
 				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
 					global_best_index_ = local_best_index;
-			}
+			} // implicit barrier
 		}
 		// Store current global best value and violation in history
 		if (current_iter % interval == 0)
