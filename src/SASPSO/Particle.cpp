@@ -1,3 +1,5 @@
+#pragma once
+
 #include "SASPSO/Particle.hpp"
 
 using namespace type_traits;
@@ -28,8 +30,8 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, double v
 {
     // Compute beta avoiding division by zero
     double beta = (global_best_position - best_position_).norm();
-    if (beta < 1e-8)
-        beta = 1e-8;
+    if (beta < 1e-16)
+        beta = 1e-16;
     // Compute omega according to the current iteration
     double delta = (omega_s_ - omega_f_) / max_iter;
     double omega = (omega_s_ - omega_f_) * exp(-delta * iteration / beta) + omega_f_;
@@ -46,13 +48,14 @@ void Particle<dim>::update(const RealVector<dim> &global_best_position, double v
 
     // Generate a point in the hypersphere of radius ||G-position|| centered in G
     double radius = (G - position_).norm();
-    std::uniform_real_distribution<double> distr(0, 1);
+    std::uniform_real_distribution<double> unif_distr(0, 1);
+    std::normal_distribution<double> normal_distr(0, 1);
     //  1. Generate a random direction in a unitary hypersphere
     RealVector<dim> random_direction = RealVector<dim>::NullaryExpr([&](int)
-                                                                    { return distr(*random_generator_); });
+                                                                { return normal_distr(*random_generator_); });
     random_direction.normalize();
     //  2. Generate a random radius with probability proportional to the surface area of a ball with a given radius
-    double random_radius = pow(distr(*random_generator_), 1.0 / dim);
+    double random_radius = pow(unif_distr(*random_generator_), 1.0 / 2);
     //  3. Generate the point in the affine hypersphere
     RealVector<dim> random_point = G + radius * (random_direction * random_radius);
 
@@ -134,15 +137,15 @@ bool Particle<dim>::feasibility_rule(double value1, double value2, double viol1,
     double ub = violation_threshold + tol;
     double lb = std::max(violation_threshold - tol, 0.0);
 
-    // check if one is feasible and if the other is not
+    // (a) a feasible solution is preferred over an infeasible solution
     if (viol1 <= lb && viol2 > ub)
         return true;
     else if (viol1 > ub && viol2 <= lb)
         return false;
-    // check if both are feasible, then the better one has the smaller value
+    // (b) among two feasible solutions, the one with better objective function value is preferred
     else if (viol1 <= lb && viol2 <= lb)
         return value1 < value2;
-    // if both are infeasible, better has the smaller total violation
+    // (c) among two infeasible solutions, the one with smaller TAV is chosen
     else
-        return viol1 < (viol2 - tol);
+        return viol1 < viol2;
 }

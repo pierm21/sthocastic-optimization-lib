@@ -27,6 +27,8 @@ include_directories(include src test)
 # create all the executables
 add_executable(test-saspso test/saspso.cpp)
 
+# set compiler flags
+target_compile_options(test-saspso PUBLIC -O3)
 
 # find openmp and eigen libraries
 #list(APPEND CMAKE_PREFIX_PATH "")
