@@ -28,19 +28,46 @@ Two main classes have been developed:
 The `SASPSO` class provides methods for the **serial** and the **parallel** implementation for both initialization and optimization methods.
 The parallel implementation exploits OpenMP multithreading in order to speedup the particles update at each iteration, assigning to each thread a subset of the swarm.
 
-Since there are no dependences between particles update at the same iteration, synchronization is only needed at the end of each iteration in order to implement s parallel reduction pattern
-to find the best particle in the swarm.
+At each iteration of the parallel version two synchronization points are needed:
+- The first to ensure that the fesible particles count has been performed entirely before accessing the reduced varible.
+- The second after the computation of the feasibility threshold in order to give the same updated value to all particles.
+
+The reduction for the global best particle has been done using a critical section instead of a custom tree reduction since it has an easier implementation, the number of threads is usually limited, and the probability that all the threads arrives at the same instant is quite low due to the previous work sharing construct that has not a barrier at exit.
 
 ## Required parameters
 This algorithm requires only the basic parameters described by the common interface. Furter performance improvements can be achieved by tuning several optional parameters. In order to choose these
 parameters the user should follow the indications in [this](http://dx.doi.org/10.1155/2016/8627083) paper.
 
-## Performed tests TODO
-The implementation of the SASPSO 2011 is provided with some tests in order to analyse its correctness and performance. The test source file for this algorithm is ```test/saspso.cpp```.
-In this section the provided tests are described along with their results.
-### Optimization of a problem
-- `error_iteration`: Optimizes all the test functions with the same parameters both in serial and in parallel. Logs the error in function of the iterations count on the same optimizaiton loop for each function.Stores in the `error_iteration.csv` file all the errors in function of the iteration.
-  > **Expected result**: It should show that the error decreases as the iteration count increases. The descent rate is random and starvation may be expected.
+## Performed tests
+The implementation of the SASPSO 2011 is provided with some tests in order to analyse its correctness and performance. The test source file for this algorithm is `test/saspso.cpp`.
+In this section the provided tests are described and the results are shown.
+
+### Optimization of a problem - `optimize`
+This test optimizes the test function setted in the `test_problem` define with the given dimension. It logs the global best value, the related total constraint violation, the violation threshold, and the number of feasible particles in function of the iterations count, storing the data in the `output/saspso_optimize.csv` file.
+
+In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
+
+<center><img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/f502d6f7-2b0f-4466-9eb8-18ac88ddd05b" height="500"></center>
+
+This plot highlights the policy to select the best among two particles that SASPSO 2011 utilizes:
+1. A feasible solution is preferred over an infeasible solution
+2. Among two feasible solutions, the one with better objective function value is preferred
+3. Among two infeasible solutions, the one with smaller total constraint violation is chosen
+
+Starting from a high-violation good-fitness solution and a very relaxed violation threshold the algorithm decreases the threshold converging to feasible solutions. The first non-feasible solution will have a better fitness, then when the 0 violation threshold is reached the first feasible solutions will have a very bad fitness. From now the constraint violation will be kept to 0, and the algorithms finds feasible solutions that minimizes the fiteness converging to the optimum.
+
+### Static vs adaptive optimization - `static_adaptive`
+This test optimizes a given problem problem using the SASPSO 2011 algorithm using adaptive parameters and static ones to show the benefits of this dynamic algorithm. Moreover the optimization is performed both serially and in paralled to ensure no performance losses of the second one. 
+
+In the results below the Gomez-Levy test problem in a 2D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
+
+<center><img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/0a5ea6e3-35a2-497a-b646-4701c670e42a" height="500"></center>
+
+NB: note that small differences can be due to the intrinsic randomness of this algorithm.
+This plot shows 
+
+
+-----
 
 - `time_numparticles`: Optimizes several time the same test function with same parameters varying only the number of particles. The optimization is done both in serial and in parallel and the time is taken to analyse the speedup. Stores in the `time_numparticles.csv` file all the execution times of the serial and parallel optimize function for each swarm size of particles.
   > **Expected result**: It should show that the excution time increases linearly in both serial and parallel case. In particular we expect that the parallel increase rate is less than 
