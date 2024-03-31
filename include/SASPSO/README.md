@@ -16,6 +16,8 @@ $$\begin{cases}
 \phi_{1s} = \phi_{2f} > \phi_{1f} = \phi_{2s} > 0
 \end{cases}$$
 
+Where $\omega$ is the inertia weight, $\phi_1$ is the cognitive acceleration parameter, and $\phi_2$ the social acceleration parameter. For each of them we denote the initial and final value as $x_i$ and $x_f$.
+
 NB: The default parameters for the algorithm implemented in this library have been choosen according to these realations.
 
 This version can also solve contrained optimization problems (COPs) exploiting an adaptive relaxation method integrated with the feasibility-based rule.
@@ -46,8 +48,9 @@ In this section the provided tests are described and the results are shown.
 This test optimizes the test function setted in the `test_problem` define with the given dimension. It logs the global best value, the related total constraint violation, the violation threshold, and the number of feasible particles in function of the iterations count, storing the data in the `output/saspso_optimize.csv` file.
 
 In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
-
-<center><img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/f502d6f7-2b0f-4466-9eb8-18ac88ddd05b" height="500"></center>
+<p align="center">
+  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/f502d6f7-2b0f-4466-9eb8-18ac88ddd05b" height="500">
+</p>
 
 This plot highlights the policy to select the best among two particles that SASPSO 2011 utilizes:
 1. A feasible solution is preferred over an infeasible solution
@@ -61,25 +64,22 @@ This test optimizes a given problem problem using the SASPSO 2011 algorithm usin
 
 In the results below the Gomez-Levy test problem in a 2D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
 
-<center><img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/0a5ea6e3-35a2-497a-b646-4701c670e42a" height="500"></center>
+<p align="center">
+  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/0a5ea6e3-35a2-497a-b646-4701c670e42a" height="500">
+</p>
 
-NB: note that small differences can be due to the intrinsic randomness of this algorithm.
-This plot shows 
+NB: Small differences can derive from the intrinsic randomness of this algorithm. Note also that the constraint violation converges in few iterations to zero since the serach space have bigger feasibility areas than the one used before.
 
+This plot shows that the parameter adaptivity feature of this implementation provides a much faster convergence with respect to static parameters (i.e. 200 vs 600 iterations). Both the serial and parallel version of the adaptive algorithm have comparable convergence rate. The adaptivity does not affect the convergence to the feasible search area as shown by the second plot.
 
------
+### Execution time and Speedup - `time_numparticles`
+This test optimizes several time a given test function varying only the number of particles. The optimization is done both serially and in parallel logging the execution time in order to compute the parallel speedup. The test stores in the `output/saspso_time_numparticles.csv` file all the logged execution time as function of the swarm size.
 
-- `time_numparticles`: Optimizes several time the same test function with same parameters varying only the number of particles. The optimization is done both in serial and in parallel and the time is taken to analyse the speedup. Stores in the `time_numparticles.csv` file all the execution times of the serial and parallel optimize function for each swarm size of particles.
-  > **Expected result**: It should show that the excution time increases linearly in both serial and parallel case. In particular we expect that the parallel increase rate is less than 
-  the serial one. Teoretically the coefficient of the parallel case should be $\frac{1}{num\ threads}$ of the serial one. The speedup converges to the theoretical result as the number 
-  of particles increases. It never reach that result due to the thread handling overhead.
+<p align="center">
+  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/cafccff2-9dda-4cea-8fbc-23a11b0fd172" height="500">
+</p>
 
-- `serial_parallel_opt`: Basic optimization of a given test function both in serial and in parallel. Prints in standard output the execution time and the achieved error. Does not saves any file.
-  > **Expected result**: It should show that the parallel version is faster than the serial one of about a factor of $num\ threads$. The error should be of the same magnitude, but may 
-  vary due to the rendomness of the method.
-
-## Documentation
-The complete documentation of the public interface of our project can be consulted [here]() TODO.
+This result shows a parallel speedup around $9.25\times$ running on an Intel Core i7-13700H machine (14 hardware cores, 20 logical threads). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
 
 ## Author
 Guerrini Alberto
