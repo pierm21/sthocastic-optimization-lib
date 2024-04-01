@@ -1,23 +1,31 @@
 # Stochastic Optimization Library
-Small collection of stochastic algorithms for constrained and unconstrained function optimization. The interface is common for each algorithm in order to facilitate the usage for the final user.
+Small collection of stochastic algorithms for constrained and unconstrained function optimization. All the implemented algorithms provide a common interface in order to abstract the implementation details and facilitate the usage for the final user.
 
 
 ## Algorithms
-Each of the implemented algorithms has its own ```README.md``` file in order to better explain its implementation, usage, implemented tests and their results.
+Each of the implemented algorithms has its own ```README.md``` file in order to better explain its implementation, usage, implemented tests and their results. A brief description and the problem type that each algorithm can address is provided below.
 - [**SASPSO - Self Adaptive Standard Particle Swarm Optimization**](include/SASPSO/README.md)
   - The SASPSO algorithm is a modified version of the Standard Particle Swarm Optimization 2011 (SPSO 2011) algorithm with **adaptive search parameters**.
   - Constrained optimization available with a constraint handling technique based on the **adaptive relaxation method** integrated with the **feasibility-based rule**.
 - **SECOND ALGORITHM**
+  - Brief description
+  - Constrained opt provided / not provided
+- **THIRD ALGORITHM**
+  - Brief description
+  - Constrained opt provided / not provided
 
 ## Common interface
 All the provided algorithms shares the same standard public interface. The user can use the same sequence of method calls to solve a given problem, indipendently from the choosen algorithm.
 
-However, each algorithm gives the possibility to specify some additional parameters that are different from one algorithm to another given their different nature.
+Each algorithm gives also the possibility to specify some additional parameters that are dependent to the optimization technique.
 Custom parameters are preferred when solving specific and/or hard optimization problems in order to gain in performances.
 
-The ```Problem``` class describes an optimization problem to be optimized. The user needs to instantiate a ```Problem``` object and set the space dimension in which it belongs, its fitness function, constraits, and bounds.
+The `Problem` class describes an optimization problem to be optimized. The user needs to instantiate a ```Problem``` object and set the space dimension in which it belongs, its fitness function, constraits, and bounds. It provides the following interface to build a problem:
+- `Constructor` to provide: fitness function as `std::function`, lower bounds and upper bounds both as `Eigen::Matrix<double, dim, 1>` where `dim` is the seach space dimension.
+- `add_equality_constraint` to add an equality constraint $f$ as `std::function` (or any cast compatible type) s.t. $f(\vec{x})=0$
+- `add_inequality_constraint` to add an inequality constraint $f$ as `std::function` (or any cast compatible type) s.t. $f(\vec{x})\le0$
 
-The ```Optimizer``` abstract class describes the interface for a specific optimizer implementation. The user needs to instantiate an object of the preferred algorithm passing the Problem as parameter.
+The `Optimizer` abstract class describes the interface for a specific optimizer implementation. The user needs to instantiate an object of the preferred algorithm passing the Problem as parameter.
 
 The following code implements a possible basic usage of an optimizer.
 ```
