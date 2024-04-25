@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Optimizer.hpp"
-#include "Particle.hpp"
+#include "Particle_SASPSO.hpp"
 
 /**
  * @brief Specialization of the Optimizer class implementing the Self Adaptive Standard Particle Swarm Optimization (SASPSO) algorithm.
@@ -16,7 +16,7 @@
  * @param phi1_f the final value of the cognitive parameter
  * @param phi2_s the starting value of the social parameter
  * @param phi2_f the final value of the social parameter
- * @param swarm_ the std::vector storing the swarm of Particle instances
+ * @param swarm_ the std::vector storing the swarm of Particle_SASPSO instances
  * @param global_best_index_ the index in the swarm array of the global best particle
  * @param violation_threshold the threshold used for considering a particle as feasible or not
  *
@@ -34,7 +34,7 @@ private:
 	double phi1_s_, phi1_f_;
 	double phi2_s_, phi2_f_;
 
-	std::vector<Particle<dim>> swarm_;
+	std::vector<Particle_SASPSO<dim>> swarm_;
 
 	size_t global_best_index_;
 

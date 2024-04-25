@@ -79,7 +79,7 @@ void SASPSO<dim>::initialize_parallel()
 		for (std::size_t i = 0; i < swarm_size_; ++i)
 		{
 			// Create and initialize the particle
-			swarm_[i] = Particle(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
+			swarm_[i] = Particle_SASPSO(problem, generator, omega_s_, omega_f_, phi1_s_, phi1_f_, phi2_s_, phi2_f_);
 			swarm_[i].initialize();
 			// Add the constraint violation to the array
 			total_violations[i] = swarm_[i].get_best_constraint_violation();
