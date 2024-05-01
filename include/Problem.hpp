@@ -19,7 +19,7 @@ public:
 		: fitness_function_(fitness_function),
 		  lower_bounds_(lower_bounds),
 		  upper_bounds_(upper_bounds),
-		  equality_constraints_(){};
+		  equality_constraints_(){};                                                 //TODO: Add inequality_constraints_() or
 
 	~Problem() = default;
 

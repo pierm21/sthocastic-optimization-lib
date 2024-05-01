@@ -104,6 +104,7 @@ int static_adaptive_test()
 	std::vector<double> history_d_p, violation_d_p;
 	std::vector<double> dummy;
 
+	//TODO: are pointers necessary? Couldn't we just use the object directly?
 	// Optimize the problems. We need to use a pointer for the specialized class
 	std::unique_ptr<SASPSO<dimension>> opt = std::make_unique<SASPSO<dimension>>(problem, particles, iter, tol);
 	opt->initialize();

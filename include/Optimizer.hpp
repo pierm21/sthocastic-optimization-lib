@@ -35,10 +35,23 @@ public:
 	virtual void initialize() = 0;
 
 	/**
+	 * @brief Initialize the optimizator to start the optimization process exploiting parallelism
+	 * 
+	 */
+	virtual void initialize_parallel() = 0;
+
+	/**
 	 * @brief Optimize the objective function
 	 *
 	 */
 	virtual void optimize() = 0;
+
+	/**
+	 * @brief Optimize the objective function exploiting parallelism
+	 *
+	 */
+	virtual void optimize_parallel() = 0;
+
 
 	/**
 	 * @brief Print the results of the optimization process

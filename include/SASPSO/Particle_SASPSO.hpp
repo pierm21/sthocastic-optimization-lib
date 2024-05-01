@@ -82,24 +82,19 @@ public:
 	void print(std::ostream &out = std::cout) const override;
 
 	/**
-	 * @brief Get the actual position of the particle
-	 *
-	 * @return const RealVector& the position vector of the particle
-	 */
-	//const RealVector<dim> &get_position() const override { return position_; }
-	/**
 	 * @brief Get the best position ever reached by the particle
 	 *
 	 * @return const RealVector& the best position vector of the particle
 	 */
-	const RealVector<dim> &get_best_position() const override { return best_position_; }
+	const RealVector<dim> &get_best_position() const { return best_position_; }
+
 	/**
 	 * @brief Get the best fitness value ever reached by the particle.
 	 * This is the value of the fitness function in the best position.
 	 *
 	 * @return double the fitness value of the best position
 	 */
-	double get_best_value() const override { return best_value_; }
+	double get_best_value() const { return best_value_; }
 
 	/**
 	 * @brief Get the current total constraint violation of the particle

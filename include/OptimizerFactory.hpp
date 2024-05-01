@@ -5,6 +5,7 @@
 #include "Optimizer.hpp"
 #include "Problem.hpp"
 #include "SASPSO/SASPSO.hpp"
+#include "ABC/ABC.hpp"
 
 /**
  * @brief Factory class to create a specific optimizer for the given problem
@@ -21,7 +22,8 @@ public:
 	 */
 	enum OptimizerName
 	{
-		SelfAdaptiveSPSO
+		SelfAdaptiveSPSO,
+		ArtificialBeeColony
 	};
 
 	/**
@@ -37,6 +39,8 @@ public:
 	{
 		if(name == OptimizerName::SelfAdaptiveSPSO)
 			return std::make_unique<SASPSO<dim>>(problem);
+		else if(name == OptimizerName::ArtificialBeeColony)
+			return std::make_unique<ABC<dim>>(problem);
 		else
 			throw std::runtime_error("Invalid optimizer name");
 	}

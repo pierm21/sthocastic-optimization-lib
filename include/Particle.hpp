@@ -62,19 +62,6 @@ public:
 	 *
 	 * @return const RealVector& the position vector of the Particle
 	 */
-	const RealVector<dim> &get_position() const { return position_; }
-	/**
-	 * @brief Get the best position ever reached by the Particle
-	 *
-	 * @return const RealVector& the best position vector of the Particle
-	 */
-	virtual const RealVector<dim> &get_best_position() const = 0;
-	/**
-	 * @brief Get the best fitness value ever reached by the Particle.
-	 * This is the value of the fitness function in the best position.
-	 *
-	 * @return double the fitness value of the best position
-	 */
-	virtual double get_best_value() const = 0;
+	const RealVector<dim> &get_position() const { return position_; }    
 
 };
