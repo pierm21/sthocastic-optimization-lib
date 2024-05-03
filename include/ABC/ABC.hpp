@@ -25,9 +25,12 @@ private:
 	double MR_;
 	int SPP_;
 
-	std::vector<Bee<dim>> swarm_;
+	int global_best_index_;
 
-	size_t global_best_index_;
+	std::vector<Bee<dim>> colony_;
+
+	double violation_threshold_;
+	double tol_;
 
 public:
 	/**
@@ -37,13 +40,13 @@ public:
 	 * @param colony_size the number of particles in the swarm
 	 */
 	
-	ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double MR = 0.8)
+	ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double MR = 0.8, double tol = 1e-6)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
 		  global_best_index_(-1),MR_(MR),
-		  limit_(limit), SPP_(SPP){};
+		  limit_(limit), SPP_(SPP), tol_(tol){};
 
-	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, double MR = 0.8)
+	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, double MR = 0.8, double tol = 1e-6)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
 		  global_best_index_(-1),MR_(MR),
@@ -61,7 +64,7 @@ public:
 	 * @brief Initialize the optimizator to start the optimization process using OMP parallel constructs
 	 * This initialization must be used if the optimization will be performed using optimize_parallel method
 	 */
-	void initialize_parallel();
+	void initialize_parallel() override;
 
 	/**
 	 * @brief Optimize the given problem
@@ -80,7 +83,7 @@ public:
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs
 	 */
-	void optimize_parallel();
+	void optimize_parallel() override;
 
 	/**
 	 * @brief Optimize the given problem using OMP thread parallelism and store the history of the best value found every interval iterations
