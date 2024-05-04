@@ -96,6 +96,13 @@ public:
 	 */
 	double get_constraint_violation() const { return constraint_violation_; }
 
+	/**
+	 * @brief compute the fitness value, useful for the fitness probability computation used by the onlookers
+	 * 
+	 * @return double consisting in the fitness value
+	 */
+	void compute_fitness_value();
+
 
 private:
 	/**
@@ -105,12 +112,6 @@ private:
 	 */
 	double compute_constraint_violation(const RealVector<dim> &position) const;
 
-	/**
-	 * @brief compute the fitness value, useful for the fitness probability computation used by the onlookers
-	 * 
-	 * @return double consisting in the fitness value
-	 */
-	void compute_fitness_value();
 
 	/**
 	 * @brief Utility to get the best position between the given two, following the feasibility-based rule

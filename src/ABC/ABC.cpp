@@ -56,22 +56,60 @@ void ABC<dim>::optimize()
 		{
 			// Update the particle
 			colony_[i].update_position(MR_, violation_threshold_, &colony_, tol_);
-			// Check if the particle is feasible
-			if (colony_[i].get_constraint_violation() <= violation_threshold_)
-				feasible_bees_++;
 		}
-
-		// Update the violation threshold according to the proportion of feasible particles
-		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_bees_ / (double)colony_size_));
-		violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
-
 		
         ////////////////////////////////////////////////////////////////////////////////
 		///////////////////////////////ONLOOKER BEE PHASE///////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////
         
-        
+		for (size_t i = 0; i < colony_size_; ++i){
+			// Prepare the roulette wheel
+			colony_[i].compute_fitness_value();
+			colony_[i].compute_probability();
+		}
 
+		std::uniform_real_distribution<double> distr(0, 1.0);
+		std::random_device rand_dev;
+		std::mt19937 generator(rand_dev());
+		// Select, according to the fitness probability, the bees that will be updated
+		// In other words the position onlooker bees choose to go to and succesively update.
+		unsigned int i, t = 0;
+		while (t < colony_size_){
+			if( distr(generator) < colony_[i].get_probability()){
+				t++;
+				colony_[i].update_position(MR_, violation_threshold_, &colony_, tol_);
+			}
+			i = (i + 1) % colony_size_;
+		}
+        
+		////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////SCOUT BEE PHASE//////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////
+
+        // If the number of iterations is a multiple of SPP, reset the bees whose position has not 
+		// been improved since a time that exceeds the limit value
+		if (current_iter % SPP_ == 0)
+		{
+			for (size_t i = 0; i < colony_size_; ++i)
+			{
+				if (colony_[i].get_failure_counter() >= limit_)
+				{
+					colony_[i].initialize();
+				}
+			}
+		}
+
+		////////////////////////////////////////////////////////////////////////////////
+
+		// Update the number of feasible bees, used to update the violation threshold
+		for (size_t i = 0; i < colony_size_; ++i)
+		{
+			if (colony_[i].get_constraint_violation() <= violation_threshold_)
+				feasible_bees_++;
+		}
+		// Update the violation threshold according to the proportion of feasible particles
+		violation_threshold_ = violation_threshold_ * (1.0 - (feasible_bees_ / (double)colony_size_));
+		violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
 
         // Update the current iteration
 		current_iter++; 
