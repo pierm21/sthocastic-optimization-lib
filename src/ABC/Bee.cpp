@@ -105,16 +105,16 @@ void Bee<dim>::compute_probability(const double total_fitness_value, const doubl
 template <size_t dim>
 double Bee<dim>::compute_constraint_violation(const RealVector<dim> &position) const
 {
-    double violation_ = 0.0;
+    double violation = 0.0;
     if (this->problem_->has_constraints())
     {
         for (RealFunction<dim> constraint : this->problem_->get_equality_constraints())
-            violation_ += std::abs(constraint(position));
+            violation += std::abs(constraint(position));
         for (RealFunction<dim> constraint : this->problem_->get_inequality_constraints())
-            violation_ += std::max(0.0, constraint(position));
+            violation += std::max(0.0, constraint(position));
     }
 
-    return violation_;
+    return violation;
 }
 
 template <size_t dim>
