@@ -16,7 +16,7 @@ using namespace type_traits;
  * @brief Class that represents a single Bee in the colony
  *
  * @param fi_value_ the value of the fitness function in the global best position
- * @param fi_probability_ proportional to the fitness value of the Bee, used in updating the position
+ * @param fitness_probability_ proportional to the fitness value of the Bee, used in updating the position
  * @param failure_counter_ the number of iterations in which the Bee has not improved
  * @param constraint_violation_ the sontraint violation of the Bee's position
  *
@@ -26,10 +26,11 @@ template <size_t dim>
 class Bee : public Particle<dim>
 {
 private:
-	double value_;
-	double fi_probability_ ;
+	double cost_value_;
+	double fitness_probability_ ;
 	int failure_counter_ ;
 	double constraint_violation_;
+	double fitness_value_;
 
 public:
 	/**
@@ -50,10 +51,22 @@ public:
 	void initialize() override;
 
 	/**
-	 * @brief Update the Bee position, using the three different strategies: employer, onlooker and scout
+	 * @brief Update the Bee position, using the Employed Bee strategy
 	 * 
+	 * @param MR modification rate
+	 * @param violation_threshold 
+	 * @param colony 
+	 * @param tol
 	 */
-    void update(const int limit, const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony_, double tol=1e-8);
+    void update_position(const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony, double tol=1e-8);
+
+	/**
+	 * @brief Compute the probability of each position to be chosen by employed bees
+	 * 
+	 * @param total_fitness_value 
+	 * @param total_constraint_violation 
+	 */
+	void compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold, const int colony_size);
 
 	/**
 	 * @brief Print the Bee parameters and actual state
@@ -67,7 +80,7 @@ public:
 	 *
 	 * @return double the fitness value of the best position
 	 */
-	double get_value() const { return value_; }
+	double get_value() const { return cost_value_; }
 
 	/**
 	 * @brief Get the failure counter of the Bee
@@ -91,6 +104,13 @@ private:
 	 * @return double indicating the amount of constraint violation 
 	 */
 	double compute_constraint_violation(const RealVector<dim> &position) const;
+
+	/**
+	 * @brief compute the fitness value, useful for the fitness probability computation used by the onlookers
+	 * 
+	 * @return double consisting in the fitness value
+	 */
+	void compute_fitness_value();
 
 	/**
 	 * @brief Utility to get the best position between the given two, following the feasibility-based rule

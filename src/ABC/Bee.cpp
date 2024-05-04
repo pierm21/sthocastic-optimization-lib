@@ -17,18 +17,14 @@ void Bee<dim>::initialize()
     // Initialize the failure counter
     failure_counter_ = 0;
     // Initialize the value
-    value_ = this->problem_->get_fitness_function()(this->position_);
+    cost_value_ = this->problem_->get_fitness_function()(this->position_);
     // Initialize the constraint violation
     constraint_violation_ = compute_constraint_violation(this->position_);
 }
 
 template <size_t dim>
-void Bee<dim>::update(const int limit, const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony_, double tol)
+void Bee<dim>::update_position(const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony_, double tol)
 {
-    /////////////////////////////////////////////////
-    ///////////// EMPLOYED BEE STRATEGY /////////////
-    /////////////////////////////////////////////////
-
     int change_occurred = 0;
     int neighbour_index = -1;
     std::uniform_real_distribution<double> distr(0, 1.0);
@@ -76,10 +72,10 @@ void Bee<dim>::update(const int limit, const double MR, double violation_thresho
     double new_position_constraint_violation_ = compute_constraint_violation(new_position);
 
     // Update the position if the new position is better
-    if(feasibility_rule(value_, new_position_value_, constraint_violation_, new_position_constraint_violation_, violation_threshold, tol))
+    if(feasibility_rule(cost_value_, new_position_value_, constraint_violation_, new_position_constraint_violation_, violation_threshold, tol))
     {
         this->position_ = new_position;
-        this->value_ = new_position_value_;
+        this->cost_value_ = new_position_value_;
         this->constraint_violation_ = new_position_constraint_violation_;
         failure_counter_ = 0;
     }
@@ -88,11 +84,21 @@ void Bee<dim>::update(const int limit, const double MR, double violation_thresho
         failure_counter_++;
     }
 
-    /////////////////////////////////////////////////
-    ///////////// ONLOOKER BEE STRATEGY /////////////
-    /////////////////////////////////////////////////
+}
 
-    ///////////// SCOUT BEE STRATEGY /////////////
+template <size_t dim>
+void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold, const int colony_size)
+{
+    // If the solution is feasible, the probability is proportional to the fitness value
+    if (constraint_violation_ <= violation_threshold)
+    {
+        fitness_probability_ = 0.5 + 0.5 * (fitness_value_ / total_fitness_value);
+    }
+    // If the solution is infeasible, the probability is inversly proportional to the constraint violation
+    else
+    {
+        fitness_probability_ = 0.5 * (1 - (constraint_violation_ / total_constraint_violation));
+    }
 }
 
 
@@ -141,10 +147,18 @@ void Bee<dim>::print(std::ostream &out) const
     out << "Constraint violation:\t" << constraint_violation_ << std::endl;
 }
 
+template <std::size_t dim>
+void Bee<dim>::compute_fitness_value()
+{
+        if (cost_value_ >= 0)
+            fitness_value_ = 1.0 / (1.0 + cost_value_);
+        else
+            fitness_value_ = 1.0 + std::abs(cost_value_);
+}
 
 /*int main(){
     Bee<2> a;
     std::vector<Bee<2>> colony;
     colony.push_back(a);
-    a.update(1, 0.5, 10, colony);
+    a.initialize();
 }*/
