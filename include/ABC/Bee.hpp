@@ -66,7 +66,7 @@ public:
 	 * @param total_fitness_value 
 	 * @param total_constraint_violation 
 	 */
-	void compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold, const int colony_size);
+	void compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold);
 
 	/**
 	 * @brief Print the Bee parameters and actual state
@@ -97,21 +97,29 @@ public:
 	double get_constraint_violation() const { return constraint_violation_; }
 
 	/**
+	 * @brief Get the fitness probability of the Bee
+	 *
+	 * @return double the fitness probability
+	 */
+	double get_probability() const { return fitness_probability_; }
+
+	/**
 	 * @brief compute the fitness value, useful for the fitness probability computation used by the onlookers
 	 * 
 	 * @return double consisting in the fitness value
 	 */
-	void compute_fitness_value();
+	double compute_fitness_value();
 
-
-private:
 	/**
-	 * @brief Utility to update the total constraint violaton at the current position
-	 * 
-	 * @return double indicating the amount of constraint violation 
-	 */
-	double compute_constraint_violation(const RealVector<dim> &position) const;
-
+	 * @brief Check if the particle is better according to the feasibility-based rule
+	 *
+	 * @param other the particle to be compared with
+	 * @param violation_threshold the total contraint violation threshold to be used in the comparison
+	 * @param tol the tolerance to be used in the comparison
+	 * @return true if the particle is better than the other
+	 * @return false otherwise
+	 
+	bool is_better_than(const Bee<dim> &other, double violation_threshold, double tol) const;*/
 
 	/**
 	 * @brief Utility to get the best position between the given two, following the feasibility-based rule
@@ -125,7 +133,17 @@ private:
 	 * @return true if the first position is better than the second one
 	 * @return false otherwise
 	 */
-	bool feasibility_rule(double value1, double value2, double viol1, double viol2, double violation_threshold, double tol) const;
+	bool feasibility_rule(double value, double viol, double violation_threshold, double tol) const;
+
+
+private:
+	/**
+	 * @brief Utility to update the total constraint violaton at the current position
+	 * 
+	 * @return double indicating the amount of constraint violation 
+	 */
+	double compute_constraint_violation(const RealVector<dim> &position) const;
+
 
 };
 

@@ -25,7 +25,11 @@ private:
 	double MR_;
 	int SPP_;
 
-	int global_best_index_;
+	size_t global_best_index_;
+	RealVector<dim> global_best_position_;
+	double global_best_value_;
+	double global_best_constraint_violation_;
+
 
 	std::vector<Bee<dim>> colony_;
 
@@ -40,13 +44,13 @@ public:
 	 * @param colony_size the number of particles in the swarm
 	 */
 	
-	ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double MR = 0.8, double tol = 1e-6)
+	ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
 		  global_best_index_(-1),MR_(MR),
 		  limit_(limit), SPP_(SPP), tol_(tol){};
 
-	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, double MR = 0.8, double tol = 1e-6)
+	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
 		  global_best_index_(-1),MR_(MR),
@@ -108,22 +112,26 @@ public:
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() override;
+	double get_global_best_value() override {return global_best_value_;};
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() override;
+	const RealVector<dim> &get_global_best_position() const override {return colony_[global_best_index_].get_position();} 
 
+
+	//TODO: valutare se mantenere,probabilmente è inutile
 	/**
 	 * @brief Checks if the global best found by the algorithm is a feasible solution according to the constraints
 	 *
 	 * @return true if the global best is a feasible solution
-	 * @return false otherwise
-	 */
+	 * @return false otherwise*/
+	 
 	bool is_feasible_solution() override;
+
+	void print_initizalization(std::ostream &out = std::cout);
 };
 
 #include "ABC/ABC.cpp"

@@ -72,7 +72,7 @@ public:
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	virtual const RealVector<dim> &get_global_best_position() = 0;
+	virtual const RealVector<dim> &get_global_best_position() const = 0;
 
 	/**
 	 * @brief Check if the current solution is feasible according to the problem constraints (if provided)

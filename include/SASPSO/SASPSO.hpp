@@ -127,7 +127,7 @@ public:
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() override;
+	const RealVector<dim> &get_global_best_position() const override;
 
 	/**
 	 * @brief Checks if the global best found by the algorithm is a feasible solution according to the constraints

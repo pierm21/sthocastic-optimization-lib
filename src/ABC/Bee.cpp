@@ -18,8 +18,10 @@ void Bee<dim>::initialize()
     failure_counter_ = 0;
     // Initialize the value
     cost_value_ = this->problem_->get_fitness_function()(this->position_);
+    //std::cout<<"Particle value: "<<cost_value_<<std::endl;
     // Initialize the constraint violation
     constraint_violation_ = compute_constraint_violation(this->position_);
+    //std::cout<<"Particle violation: "<<constraint_violation_<<std::endl;
 }
 
 template <size_t dim>
@@ -47,7 +49,13 @@ void Bee<dim>::update_position(const double MR, double violation_threshold, cons
                 neighbour_index = distr3(*this->random_generator_);
             } while (r == i);
 
-            new_position[i] = this->position_[i] + phi * (this->position_[i] - colony_[neighbour_index].get_position()[i]);
+            double new_parameter = this->position_[i] + phi * (this->position_[i] - colony_[neighbour_index].get_position()[i]);
+            if (new_parameter < this->problem_->get_lower_bound(i))
+                new_position[i] = this->problem_->get_lower_bound(i);
+            else if (new_parameter > this->problem_->get_upper_bound(i))
+                new_position[i] = this->problem_->get_upper_bound(i);
+            else
+                new_position[i] = new_parameter;
         }
     }
 
@@ -72,7 +80,7 @@ void Bee<dim>::update_position(const double MR, double violation_threshold, cons
     double new_position_constraint_violation_ = compute_constraint_violation(new_position);
 
     // Update the position if the new position is better
-    if(feasibility_rule(cost_value_, new_position_value_, constraint_violation_, new_position_constraint_violation_, violation_threshold, tol))
+    if(!feasibility_rule(new_position_value_, new_position_constraint_violation_, violation_threshold, tol))
     {
         this->position_ = new_position;
         this->cost_value_ = new_position_value_;
@@ -87,7 +95,7 @@ void Bee<dim>::update_position(const double MR, double violation_threshold, cons
 }
 
 template <size_t dim>
-void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold, const int colony_size)
+void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold)
 {
     // If the solution is feasible, the probability is proportional to the fitness value
     if (constraint_violation_ <= violation_threshold)
@@ -118,23 +126,30 @@ double Bee<dim>::compute_constraint_violation(const RealVector<dim> &position) c
 }
 
 template <size_t dim>
-bool Bee<dim>::feasibility_rule(double value1, double value2, double viol1, double viol2, double violation_threshold, double tol) const
+bool Bee<dim>::feasibility_rule(double value, double viol, double violation_threshold, double tol) const
 {
     double ub = violation_threshold + tol;
     double lb = std::max(violation_threshold - tol, 0.0);
 
     // (a) a feasible solution is preferred over an infeasible solution
-    if (viol1 <= lb && viol2 > ub)
+    if (this->constraint_violation_ <= lb && viol > ub)
         return true;
-    else if (viol1 > ub && viol2 <= lb)
+    else if (this->constraint_violation_ > ub && viol <= lb)
         return false;
     // (b) among two feasible solutions, the one with better objective function value is preferred
-    else if (viol1 <= lb && viol2 <= lb)
-        return value1 < value2;
+    else if (this->constraint_violation_ <= lb && viol <= lb)
+        return this->cost_value_ < value;
     // (c) among two infeasible solutions, the one with smaller TAV is chosen
     else
-        return viol1 < viol2;
+        return this->constraint_violation_ < viol;
 }
+
+/*template <size_t dim>
+bool Bee<dim>::is_better_than(const Bee<dim> &other, double violation_threshold, double tol) const
+{
+    return feasibility_rule(cost_value_, other.get_value(), constraint_violation_,
+                            other.get_constraint_violation(), violation_threshold, tol);
+}*/
 
 template <std::size_t dim>
 void Bee<dim>::print(std::ostream &out) const
@@ -148,12 +163,13 @@ void Bee<dim>::print(std::ostream &out) const
 }
 
 template <std::size_t dim>
-void Bee<dim>::compute_fitness_value()
+double Bee<dim>::compute_fitness_value()
 {
         if (cost_value_ >= 0)
             fitness_value_ = 1.0 / (1.0 + cost_value_);
         else
             fitness_value_ = 1.0 + std::abs(cost_value_);
+        return fitness_value_;
 }
 
 /*int main(){

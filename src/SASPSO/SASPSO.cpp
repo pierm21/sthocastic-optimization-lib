@@ -337,7 +337,7 @@ double SASPSO<dim>::get_global_best_value()
 }
 
 template <std::size_t dim>
-const RealVector<dim> &SASPSO<dim>::get_global_best_position()
+const RealVector<dim> &SASPSO<dim>::get_global_best_position() const
 {
 	return swarm_[global_best_index_].get_best_position();
 }
