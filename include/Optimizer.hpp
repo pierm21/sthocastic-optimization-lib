@@ -74,11 +74,4 @@ public:
 	 */
 	virtual const RealVector<dim> &get_global_best_position() const = 0;
 
-	/**
-	 * @brief Check if the current solution is feasible according to the problem constraints (if provided)
-	 *
-	 * @return true if the solution is feasible
-	 * @return false otherwise
-	 */
-	virtual bool is_feasible_solution() = 0;
 };

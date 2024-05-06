@@ -26,7 +26,8 @@ namespace TestProblems
 	{
 		TOWNSEND,
 		GOMEZ_LEVY,
-		G10
+		G10,
+		G7
 	};
 
 	/**
