@@ -31,6 +31,7 @@ private:
 	int failure_counter_ ;
 	double constraint_violation_;
 	double fitness_value_;
+	size_t index_in_colony_;
 
 public:
 	/**
@@ -39,8 +40,9 @@ public:
 	 * @param problem shared pointer to the problem to be optimized
 	 */
 	Bee(const std::shared_ptr<Problem<dim>> &problem,
-			 const std::shared_ptr<std::mt19937> &random_generator)
-		: Particle<dim> (problem, random_generator){};
+			 const std::shared_ptr<std::mt19937> &random_generator, size_t index_in_colony)
+		: Particle<dim> (problem, random_generator),
+		  index_in_colony_(index_in_colony){};
 
 	Bee() = default;
 	~Bee() = default;
@@ -143,7 +145,6 @@ private:
 	 * @return double indicating the amount of constraint violation 
 	 */
 	double compute_constraint_violation(const RealVector<dim> &position) const;
-
 
 };
 

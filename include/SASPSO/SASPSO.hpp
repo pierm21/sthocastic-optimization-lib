@@ -135,7 +135,7 @@ public:
 	 * @return true if the global best is a feasible solution
 	 * @return false otherwise
 	 */
-	bool is_feasible_solution() override;
+	bool is_feasible_solution();
 };
 
 #include "SASPSO/SASPSO.cpp"

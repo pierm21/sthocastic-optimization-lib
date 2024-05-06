@@ -25,7 +25,7 @@ private:
 	double MR_;
 	int SPP_;
 
-	size_t global_best_index_;
+	//size_t global_best_index_;
 	RealVector<dim> global_best_position_;
 	double global_best_value_;
 	double global_best_constraint_violation_;
@@ -44,18 +44,19 @@ public:
 	 * @param colony_size the number of particles in the swarm
 	 */
 	
-	ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
-		: Optimizer<dim>(problem),
-		  colony_size_(colony_size), max_iter_(max_iter), 
-		  global_best_index_(-1),MR_(MR),
-		  limit_(limit), SPP_(SPP), tol_(tol){};
+	//ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
+	//	: Optimizer<dim>(problem),
+	//	  colony_size_(colony_size), max_iter_(max_iter), 
+	//	  /*global_best_index_(-1)*/,MR_(MR),
+	//	  limit_(limit), SPP_(SPP), tol_(tol){};
+		  
 
-	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
+	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, int limit = -1, int SPP = -1, double MR = 0.8, double tol = 1e-6)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
-		  global_best_index_(-1),MR_(MR),
-		  limit_(static_cast<int>(colony_size*dim*0.5)),				//TODO: esnure that dim can be used here
-		  SPP_(static_cast<int>(colony_size*dim*0.5)){};
+		  /*global_best_index_(-1),*/MR_(MR), tol_(tol),
+		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit),				//TODO: esnure that dim can be used here
+		  SPP_(SPP == -1 ? static_cast<int>(colony_size* dim * 0.5) : SPP){};
 
 
 	/**
@@ -119,17 +120,9 @@ public:
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() const override {return colony_[global_best_index_].get_position();} 
+	const RealVector<dim> &get_global_best_position() const override {return global_best_position_;} 
 
-
-	//TODO: valutare se mantenere,probabilmente è inutile
-	/**
-	 * @brief Checks if the global best found by the algorithm is a feasible solution according to the constraints
-	 *
-	 * @return true if the global best is a feasible solution
-	 * @return false otherwise*/
-	 
-	bool is_feasible_solution() override;
+	double get_global_best_constraint_violation() {return global_best_constraint_violation_;};
 
 	void print_initizalization(std::ostream &out = std::cout);
 };
