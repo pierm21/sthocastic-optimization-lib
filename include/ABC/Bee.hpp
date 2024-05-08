@@ -56,11 +56,9 @@ public:
 	 * @brief Update the Bee position, using the Employed Bee strategy
 	 * 
 	 * @param MR modification rate
-	 * @param violation_threshold 
 	 * @param colony 
-	 * @param tol
 	 */
-    void update_position(const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony, double tol=1e-8);
+    void update_position(const double MR, const std::vector<Bee<dim>>& colony);
 
 	/**
 	 * @brief Compute the probability of each position to be chosen by employed bees
@@ -68,7 +66,7 @@ public:
 	 * @param total_fitness_value 
 	 * @param total_constraint_violation 
 	 */
-	void compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold);
+	void compute_probability(const double total_fitness_value, const double total_constraint_violation);
 
 	/**
 	 * @brief Print the Bee parameters and actual state
@@ -112,30 +110,16 @@ public:
 	 */
 	double compute_fitness_value();
 
-	/**
-	 * @brief Check if the particle is better according to the feasibility-based rule
-	 *
-	 * @param other the particle to be compared with
-	 * @param violation_threshold the total contraint violation threshold to be used in the comparison
-	 * @param tol the tolerance to be used in the comparison
-	 * @return true if the particle is better than the other
-	 * @return false otherwise
-	 
-	bool is_better_than(const Bee<dim> &other, double violation_threshold, double tol) const;*/
 
 	/**
 	 * @brief Utility to get the best position between the given two, following the feasibility-based rule
 	 *
-	 * @param value1 the fitness value on first position
-	 * @param value2 the fitness value on second position
-	 * @param viol1 the constraint violation on the first position
-	 * @param viol2 the constraint violation on the second position
-	 * @param violation_threshold the total contraint violation threshold to be used in the comparison
-	 * @param tol the tolerance to be used in the comparison
-	 * @return true if the first position is better than the second one
+	 * @param value the fitness value on the position you are comparing with the one of this Bee
+	 * @param viol the constraint violation on the position you are comparing with the one of this Bee
+	 * @return true if this Bee is better than the other one
 	 * @return false otherwise
 	 */
-	bool feasibility_rule(double value, double viol, double violation_threshold, double tol) const;
+	bool feasibility_rule(double value, double viol) const;
 
 
 private:

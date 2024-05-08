@@ -19,9 +19,9 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSED"*/
 
-/*#define dimension 8
+#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"*/
+#define problem_name "G10"
 
 /*#define dimension 10
 #define test_problem TestProblems::G7
@@ -34,7 +34,6 @@ int optimize()
 	std::vector<double> best_values;
 	int iter = 6000;
 	int particles = 20;
-	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
 	// Preliminary informations to std out
@@ -70,7 +69,6 @@ int optimize()
 	file_out << "# Fitness, constraints violation and feasible bees over iterations" << std::endl;
 	file_out << "# Dimension: " << dimension << std::endl;
 	file_out << "# Bees: " << particles << std::endl;
-	file_out << "# Tolerance: " << tol << std::endl;
 	file_out << "# Problem: " << problem_name << std::endl;
 
 	file_out << "Iters,value,violation,threshold,feasible_bees" << std::endl;

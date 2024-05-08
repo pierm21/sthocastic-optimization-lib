@@ -10,11 +10,11 @@ void Bee<dim>::initialize()
     // Draw uniformly a value in the range [lower_bound_i, upper_bound_i] for each dimension i
     for (size_t i = 0; i < dim; ++i)
     {
-        //std::uniform_real_distribution<double> distr(this->problem_->get_lower_bound(i), this->problem_->get_upper_bound(i));
+        std::uniform_real_distribution<double> distr(this->problem_->get_lower_bound(i), this->problem_->get_upper_bound(i));
         // Initialize the position and velocity vectors
-        //this->position_[i] = distr(*this->random_generator_);
-        std::uniform_real_distribution<double> distr(0,1);
-        this -> position_[i] = this->problem_->get_lower_bound(i) + distr(*this->random_generator_) * (this->problem_->get_upper_bound(i) - this->problem_->get_lower_bound(i));
+        this->position_[i] = distr(*this->random_generator_);
+        //std::uniform_real_distribution<double> distr(0,1);
+        //this -> position_[i] = this->problem_->get_lower_bound(i) + distr(*this->random_generator_) * (this->problem_->get_upper_bound(i) - this->problem_->get_lower_bound(i));
     }
     // Initialize the failure counter
     failure_counter_ = 0;
@@ -38,7 +38,7 @@ void Bee<dim>::initialize()
 }
 
 template <size_t dim>
-void Bee<dim>::update_position(const double MR, double violation_threshold, const std::vector<Bee<dim>>& colony_, double tol)
+void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& colony_)
 {
     int change_occurred = 0;
     size_t neighbour_index = -1;
@@ -105,7 +105,7 @@ void Bee<dim>::update_position(const double MR, double violation_threshold, cons
     double new_position_constraint_violation_ = compute_constraint_violation(new_position);
 
     // Update the position if the new position is better
-    if(!feasibility_rule(new_position_value_, new_position_constraint_violation_, violation_threshold, tol))
+    if(!feasibility_rule(new_position_value_, new_position_constraint_violation_))
     {
         this->position_ = new_position;
         this->cost_value_ = new_position_value_;
@@ -120,7 +120,7 @@ void Bee<dim>::update_position(const double MR, double violation_threshold, cons
 }
 
 template <size_t dim>
-void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation, const double violation_threshold)
+void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation)
 {
     // If the solution is feasible, the probability is proportional to the fitness value
     if (constraint_violation_ == 0)
@@ -151,24 +151,8 @@ double Bee<dim>::compute_constraint_violation(const RealVector<dim> &position) c
 }
 
 template <size_t dim>
-bool Bee<dim>::feasibility_rule(double value, double viol, double violation_threshold, double tol) const
+bool Bee<dim>::feasibility_rule(double value, double viol) const
 {
-    double ub = violation_threshold + tol;
-    double lb = std::max(violation_threshold - tol, 0.0);
-
-/*    // (a) a feasible solution is preferred over an infeasible solution
-    if (this->constraint_violation_ <= lb && viol > ub)
-        return true;
-    else if (this->constraint_violation_ > ub && viol <= lb)
-        return false;
-    // (b) among two feasible solutions, the one with better objective function value is preferred
-    else if (this->constraint_violation_ <= lb && viol <= lb)
-        return this->cost_value_ < value;
-    // (c) among two infeasible solutions, the one with smaller TAV is chosen
-    else
-        return this->constraint_violation_ < viol;
-        */
-
     // (a) a feasible solution is preferred over an infeasible solution
     if (this->constraint_violation_ == 0 && viol > 0)
         return true;
