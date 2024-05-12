@@ -320,7 +320,7 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 }
 
 template <std::size_t dim>
-void SASPSO<dim>::print_results(std::ostream &out)
+void SASPSO<dim>::print_results(std::ostream &out) const
 {
 	out << std::setprecision(20) << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
 	out << "Best position: (";
@@ -331,7 +331,7 @@ void SASPSO<dim>::print_results(std::ostream &out)
 }
 
 template <std::size_t dim>
-double SASPSO<dim>::get_global_best_value()
+double SASPSO<dim>::get_global_best_value() const
 {
 	return swarm_[global_best_index_].get_best_value();
 }
@@ -343,7 +343,7 @@ const RealVector<dim> &SASPSO<dim>::get_global_best_position() const
 }
 
 template <std::size_t dim>
-bool SASPSO<dim>::is_feasible_solution()
+bool SASPSO<dim>::is_feasible_solution() const
 {
 	return swarm_[global_best_index_].get_best_constraint_violation() <= tol_;
 }

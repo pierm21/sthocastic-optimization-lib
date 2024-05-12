@@ -113,14 +113,14 @@ public:
 	 *
 	 * @param out output stream where to print results
 	 */
-	void print_results(std::ostream &out = std::cout) override;
+	void print_results(std::ostream &out = std::cout) const override;
 
 	/**
 	 * @brief Get the actual global best value found by the algorithm
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() override;
+	double get_global_best_value() const override;
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
@@ -135,7 +135,7 @@ public:
 	 * @return true if the global best is a feasible solution
 	 * @return false otherwise
 	 */
-	bool is_feasible_solution();
+	bool is_feasible_solution() const;
 };
 
 #include "SASPSO/SASPSO.cpp"

@@ -30,7 +30,8 @@ add_executable(test-abc test/abc.cpp)
 
 # set compiler flags
 target_compile_options(test-saspso PUBLIC -O3)
-target_compile_options(test-abc PUBLIC -O3)
+target_compile_options(test-abc PUBLIC -O3 -g)
+add_compile_options(-Wall -Wextra) 
 
 # find openmp and eigen libraries
 #list(APPEND CMAKE_PREFIX_PATH "")

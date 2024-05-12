@@ -13,17 +13,13 @@ void Bee<dim>::initialize()
         std::uniform_real_distribution<double> distr(this->problem_->get_lower_bound(i), this->problem_->get_upper_bound(i));
         // Initialize the position and velocity vectors
         this->position_[i] = distr(*this->random_generator_);
-        //std::uniform_real_distribution<double> distr(0,1);
-        //this -> position_[i] = this->problem_->get_lower_bound(i) + distr(*this->random_generator_) * (this->problem_->get_upper_bound(i) - this->problem_->get_lower_bound(i));
     }
     // Initialize the failure counter
     failure_counter_ = 0;
     // Initialize the value
     cost_value_ = this->problem_->get_fitness_function()(this->position_);
-    //std::cout<<"Particle value: "<<cost_value_<<std::endl;
     // Initialize the constraint violation
     constraint_violation_ = compute_constraint_violation(this->position_);
-    //std::cout<<"Particle violation: "<<constraint_violation_<<std::endl;
 
     /*std::cout<<"Bee: "<< this->index_in_colony_<<std::endl;
     std::cout<<"Position:   ";
@@ -151,7 +147,7 @@ double Bee<dim>::compute_constraint_violation(const RealVector<dim> &position) c
 }
 
 template <size_t dim>
-bool Bee<dim>::feasibility_rule(double value, double viol) const
+bool Bee<dim>::feasibility_rule(const double value, const double viol) const
 {
     // (a) a feasible solution is preferred over an infeasible solution
     if (this->constraint_violation_ == 0 && viol > 0)

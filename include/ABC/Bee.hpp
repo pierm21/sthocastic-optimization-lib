@@ -119,7 +119,7 @@ public:
 	 * @return true if this Bee is better than the other one
 	 * @return false otherwise
 	 */
-	bool feasibility_rule(double value, double viol) const;
+	bool feasibility_rule(const double value, const double viol) const;
 
 
 private:

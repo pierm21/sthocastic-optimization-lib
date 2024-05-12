@@ -47,6 +47,9 @@ int optimize()
 	// Initialize history
 	std::vector<double> history, violation, feasible, threshold;		
 
+	// Get the exact global minimum
+	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
+
 	for (int i = 0; i < 30; i++)
 	{
 	std::unique_ptr<Optimizer<dimension>> opt_p = std::make_unique<ABC<dimension>>(problem, particles, iter);//, 1e-10);
@@ -57,9 +60,9 @@ int optimize()
 		return 1;
 	}
 
-	std::ofstream file_out;
-	file_out.open("../output/abc_optimize.csv");
-	if (!file_out)
+	//std::ofstream file_out;
+	//file_out.open("../output/abc_optimize.csv");
+	/*if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
 		return -1;
@@ -71,21 +74,23 @@ int optimize()
 	file_out << "# Bees: " << particles << std::endl;
 	file_out << "# Problem: " << problem_name << std::endl;
 
-	file_out << "Iters,value,violation,threshold,feasible_bees" << std::endl;
+	file_out << "Iters,value,violation,threshold,feasible_bees" << std::endl;*/
 
 	//saspso_ptr->initialize_parallel();
 	//saspso_ptr->optimize_parallel(history, violation, feasible, threshold, log_interval);
-    abc_ptr->initialize();
+    abc_ptr->initialize_parallel();
     //abc_ptr->print_initizalization();
-    abc_ptr->optimize();
+    abc_ptr->optimize_parallel();
     //abc_ptr->optimize(/*history, violation, feasible, threshold, log_interval*/);
-
-	// Get the exact global minimum
-	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
-    std::cout << "Exact value: " << exact_value << std::endl;
 
     // Get the minimum value found
     double found_value = abc_ptr->get_global_best_value();
+	/*RealVector<dimension> found_position =  abc_ptr->get_global_best_position();
+	for (int i = 0; i < found_position.size(); i++)
+	{
+		std::cout << "Position[" << i << "]: " << found_position[i] << std::endl;
+	}*/
+	std::cout << "Exact value: " << exact_value << std::endl;
     std::cout << "Found value: " << found_value << std::endl;
 	std::cout << std::endl;
 	best_values.push_back(found_value);
@@ -117,11 +122,11 @@ int optimize()
 	std_dev = std::sqrt(std_dev / best_values.size());
 	std::cout << "Standard deviation: " << std_dev << std::endl;
 
-	// Print the final error
+	//Print the final error
 	//std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
 	//std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
-    //std::cout << std::endl << "Absolute error: " << std::abs(found_value - exact_value) << std::endl;
-	//std::cout << "Relative error: " << std::abs(found_value - exact_value) / exact_value << std::endl;
+    std::cout << std::endl << "Absolute error: " << std::abs(found_value - exact_value) << std::endl;
+    std::cout << "Relative error: " << std::abs(found_value - exact_value) / exact_value << std::endl;
 
 /*	// Store on file
 	for (int i = 0; i < history.size(); i++)
@@ -134,6 +139,59 @@ int optimize()
 	}
 	file_out.close();
 */
+	return 0;
+}
+
+int serial_parallel_test()
+{
+	// Initialize problem and solver parameters
+	constexpr int log_interval = 50;
+	std::vector<double> best_values;
+	int iter = 6000;
+	int particles = 80;
+	auto problem = TestProblems::create_problem<dimension>(test_problem);
+
+	std::cout << "Problem: " << problem_name << std::endl;
+	std::cout << "Max iterations: " << iter << std::endl;
+	std::cout << "Num bees: " << particles << std::endl;
+
+	// Test the serial version
+	std::cout << std::endl;
+	std::cout << "--- Serial optimizer testing ---" << std::endl;
+	std::unique_ptr<Optimizer<dimension>> opt = std::make_unique<ABC<dimension>>(problem, particles, iter);//, 1e-10);
+	auto abc_ptr = dynamic_cast<ABC<dimension> *>(opt.get());
+	if (!abc_ptr)
+	{
+		std::cerr << "Error: dynamic_cast failed" << std::endl;
+		return 1;
+	}	
+	auto t1 = std::chrono::high_resolution_clock::now();
+	abc_ptr->initialize();
+	abc_ptr->optimize();
+	auto t2 = std::chrono::high_resolution_clock::now();
+	abc_ptr->print_results();
+
+	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - abc_ptr->get_global_best_value()) << std::endl;
+	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - abc_ptr->get_global_best_position()).norm() << std::endl;
+	double time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+	std::cout << std::setprecision(20) << "Elapsed initialization + optimization time: " << time_serial << std::endl;
+
+	// Test the parallel version
+	std::cout << std::endl;
+	std::cout << "--- Parallel optimizer testing ---" << std::endl;
+std::unique_ptr<Optimizer<dimension>> opt_p = std::make_unique<ABC<dimension>>(problem, particles, iter);//, 1e-10);
+	auto abc_p_ptr = dynamic_cast<ABC<dimension> *>(opt_p.get());
+	t1 = std::chrono::high_resolution_clock::now();
+	abc_p_ptr->initialize_parallel();
+	abc_p_ptr->optimize_parallel();
+	t2 = std::chrono::high_resolution_clock::now();
+	abc_p_ptr->print_results();
+	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - abc_p_ptr->get_global_best_value()) << std::endl;
+	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - abc_p_ptr->get_global_best_position()).norm() << std::endl;
+	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+	std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
+	std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
+
 	return 0;
 }
 
@@ -151,14 +209,14 @@ int main(int argc, char **argv)
 
 	// Get from command line the required test
 	std::string test = argv[1];
-	/*if (test == "static_adaptive")
-		static_adaptive_test();
-	else if (test == "serial_parallel")
+//	if (test == "static_adaptive")
+//		static_adaptive_test();
+	/*else*/
+	if (test == "serial_parallel")
 		serial_parallel_test();
-	else if (test == "time_numparticles")
-		time_numparticles_test();
-	else*/
-    if (test == "optimize")
+	//else if (test == "time_numparticles")
+	//	time_numparticles_test();
+	else if (test == "optimize")
 		optimize();
 	else
 	{

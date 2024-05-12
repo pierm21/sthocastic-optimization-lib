@@ -11,8 +11,6 @@
  * @param colony_size the number of particles in the swarm
  * @param max_iter the maximum number of iterations
  * @param tol the tolerance used for checking constraint conditions
- * @param global_best_index_ the index in the swarm array of the global best particle
- *
  * @tparam dim the dimension of the space in which the function is defined
  */
 template <std::size_t dim>
@@ -25,7 +23,6 @@ private:
 	double MR_;
 	int SPP_;
 
-	//size_t global_best_index_;
 	RealVector<dim> global_best_position_;
 	double global_best_value_;
 	double global_best_constraint_violation_;
@@ -42,19 +39,12 @@ public:
 	 *
 	 * @param problem the Problem to be optimized
 	 * @param colony_size the number of particles in the swarm
-	 */
-	
-	//ABC(const Problem<dim> &problem, int limit, int SPP, int colony_size = 40, int max_iter = 6000, double tol = 1e-6, double MR = 0.8)
-	//	: Optimizer<dim>(problem),
-	//	  colony_size_(colony_size), max_iter_(max_iter), 
-	//	  /*global_best_index_(-1)*/,MR_(MR),
-	//	  limit_(limit), SPP_(SPP), tol_(tol){};
-		  
+	 */  
 
 	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, int limit = -1, int SPP = -1, double MR = 0.8, double tol = 1e-6)
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter), 
-		  /*global_best_index_(-1),*/MR_(MR), tol_(tol),
+		  MR_(MR), tol_(tol),
 		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit),				//TODO: esnure that dim can be used here
 		  SPP_(SPP == -1 ? static_cast<int>(colony_size* dim * 0.5) : SPP){};
 
@@ -106,14 +96,14 @@ public:
 	 *
 	 * @param out output stream where to print results
 	 */
-	void print_results(std::ostream &out = std::cout) override;
+	void print_results(std::ostream &out = std::cout) const override;
 
 	/**
 	 * @brief Get the actual global best value found by the algorithm
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() override {return global_best_value_;};
+	double get_global_best_value() const override {return global_best_value_;};
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
@@ -122,9 +112,9 @@ public:
 	 */
 	const RealVector<dim> &get_global_best_position() const override {return global_best_position_;} 
 
-	double get_global_best_constraint_violation() {return global_best_constraint_violation_;};
+	double get_global_best_constraint_violation() const {return global_best_constraint_violation_;};
 
-	void print_initizalization(std::ostream &out = std::cout);
+	void print_initizalization(std::ostream &out = std::cout) const;
 };
 
 #include "ABC/ABC.cpp"

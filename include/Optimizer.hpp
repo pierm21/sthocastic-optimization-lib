@@ -58,14 +58,14 @@ public:
 	 *
 	 * @param out the output stream where the results will be printed
 	 */
-	virtual void print_results(std::ostream &out = std::cout) = 0;
+	virtual void print_results(std::ostream &out = std::cout) const = 0;
 
 	/**
 	 * @brief Get the global best value object
 	 *
 	 * @return double the global best value
 	 */
-	virtual double get_global_best_value() = 0;
+	virtual double get_global_best_value() const = 0;
 
 	/**
 	 * @brief Get the global best position object
