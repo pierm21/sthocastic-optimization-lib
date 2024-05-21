@@ -19,9 +19,13 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSED"*/
 
-#define dimension 8
+/*#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"
+#define problem_name "G10"*/
+
+#define dimension 30
+#define test_problem TestProblems::GRIEWANK
+#define problem_name "GRIEWANK"
 
 /*#define dimension 10
 #define test_problem TestProblems::G7
@@ -32,8 +36,8 @@ int optimize()
 {
 	constexpr int log_interval = 50;
 	std::vector<double> best_values;
-	int iter = 6000;
-	int particles = 20;
+	int iter = 5000;
+	int particles = 80;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
 	// Preliminary informations to std out

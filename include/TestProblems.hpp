@@ -27,7 +27,8 @@ namespace TestProblems
 		TOWNSEND,
 		GOMEZ_LEVY,
 		G10,
-		G7
+		G7,
+		GRIEWANK
 	};
 
 	/**

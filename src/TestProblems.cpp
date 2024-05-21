@@ -73,13 +73,15 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 
 		return problem;
 	}
-	else throw std::runtime_error("Problem not implemented.\n \
+	else
+		throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \
 			Check if the dim template parameter is consistent with the specified problem.");
 }
 
-template<>
-Problem<8> TestProblems::create_problem<8>(ProblemName p) {
+template <>
+Problem<8> TestProblems::create_problem<8>(ProblemName p)
+{
 	if (p == G10)
 	{
 		auto f = [](const RealVector<8> &x)
@@ -132,14 +134,53 @@ Problem<8> TestProblems::create_problem<8>(ProblemName p) {
 
 		return problem;
 	}
-	else throw std::runtime_error("Problem not implemented.\n \
+	else
+		throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \
 			Check if the dim template parameter is consistent with the specified problem.");
-
 }
 
-template<>
-Problem<10> TestProblems::create_problem<10>(ProblemName p) {
+template <>
+Problem<30> TestProblems::create_problem<30>(ProblemName p)
+{
+	if (p == GRIEWANK)
+	{
+		auto f = [](const RealVector<30> &x)
+		{
+			double ret = 0;
+			double sum = 0;
+			double prod = 1;
+			for (int i = 0; i < 30; i++)
+			{
+				sum += x[i] * x[i];
+				prod *= cos(x[i] / sqrt(i + 1));
+			}
+			ret += sum / 4000.0 - prod + 1;
+			return ret;
+		};
+
+		RealVector<30> lb;
+		lb << -600, -600, -600, -600, -600, -600, -600, -600, -600, -600,
+			-600, -600, -600, -600, -600, -600, -600, -600, -600, -600,
+			-600, -600, -600, -600, -600, -600, -600, -600, -600, -600;
+		RealVector<30> ub;
+		ub << 600, 600, 600, 600, 600, 600, 600, 600, 600, 600,
+			600, 600, 600, 600, 600, 600, 600, 600, 600, 600,
+			600, 600, 600, 600, 600, 600, 600, 600, 600, 600;
+
+		Problem<30> problem(f, lb, ub);
+
+		return problem;
+	}
+	else
+		throw std::runtime_error("Problem not implemented.\n \
+			Check the documentation for the available problems.\n \
+			Check if the dim template parameter is consistent with the specified problem.");
+}
+
+template <>
+Problem<10> TestProblems::create_problem<10>(ProblemName p)
+{
 	if (p == G7)
 	{
 		auto f = [](const RealVector<10> &x)
@@ -148,20 +189,19 @@ Problem<10> TestProblems::create_problem<10>(ProblemName p) {
 			double a = x[0] * x[0];
 			double b = x[1] * x[1];
 			double c = x[0] * x[1];
-			double d = (x[2] - 10)*(x[2] - 10);
-			double e = (x[3] - 5)*(x[3] - 5);
-			double f = (x[4] - 3)*(x[4] - 3);
-			double g = (x[5] - 1)*(x[5] - 1);
+			double d = (x[2] - 10) * (x[2] - 10);
+			double e = (x[3] - 5) * (x[3] - 5);
+			double f = (x[4] - 3) * (x[4] - 3);
+			double g = (x[5] - 1) * (x[5] - 1);
 			double h = x[6] * x[6];
-			double i = (x[7] - 11)*(x[7] - 11);
-			double j = (x[8] - 10)*(x[8] - 10);
-			double k = (x[9] -7)*(x[9] - 7);
-			ret += a + b + c - 14*x[0] - 16*x[1];
-			ret += d + 4*e + f + 2*g + 5*h;
-			ret += 7*i + 2*j + k + 45;
+			double i = (x[7] - 11) * (x[7] - 11);
+			double j = (x[8] - 10) * (x[8] - 10);
+			double k = (x[9] - 7) * (x[9] - 7);
+			ret += a + b + c - 14 * x[0] - 16 * x[1];
+			ret += d + 4 * e + f + 2 * g + 5 * h;
+			ret += 7 * i + 2 * j + k + 45;
 			return ret;
 		};
-
 
 		RealVector<10> lb;
 		lb << -10, -10, -10, -10, -10, -10, -10, -10, -10, -10;
@@ -220,10 +260,10 @@ Problem<10> TestProblems::create_problem<10>(ProblemName p) {
 
 		return problem;
 	}
-	else throw std::runtime_error("Problem not implemented.\n \
+	else
+		throw std::runtime_error("Problem not implemented.\n \
 			Check the documentation for the available problems.\n \
 			Check if the dim template parameter is consistent with the specified problem.");
-
 }
 
 template <size_t dim>
@@ -244,6 +284,10 @@ double TestProblems::get_exact_value(ProblemName p)
 	else if (p == G7 && dim == 10)
 	{
 		return 24.30620;
+	}
+	else if (p == GRIEWANK && dim == 30)
+	{
+		return 0;
 	}
 	else
 		throw std::runtime_error("Problem not implemented.\n \
@@ -268,7 +312,7 @@ RealVector<dim> TestProblems::get_exact_position(ProblemName p)
 			Check if the dim template parameter is consistent with the specified problem.");
 }
 
-template<>
+template <>
 RealVector<8> TestProblems::get_exact_position<8>(ProblemName p)
 {
 	if (p == G10)
@@ -283,13 +327,28 @@ RealVector<8> TestProblems::get_exact_position<8>(ProblemName p)
 			Check if the dim template parameter is consistent with the specified problem.");
 }
 
-template<>
+template <>
 RealVector<10> TestProblems::get_exact_position<10>(ProblemName p)
 {
 	if (p == G7)
 	{
 		RealVector<10> ret;
 		ret << 2.1719, 2.3636, 8.7739, 5.0959, 0.9906, 1.4305, 1.3216, 9.8287, 8.2800, 8.3759;
+		return ret;
+	}
+	else
+		throw std::runtime_error("Problem not implemented.\n \
+			Check the documentation for the available problems.\n \
+			Check if the dim template parameter is consistent with the specified problem.");
+}
+
+template <>
+RealVector<30> TestProblems::get_exact_position<30>(ProblemName p)
+{
+	if (p == GRIEWANK)
+	{
+		RealVector<30> ret;
+		ret << 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.;
 		return ret;
 	}
 	else
