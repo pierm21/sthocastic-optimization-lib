@@ -7,9 +7,9 @@ Each of the implemented algorithms has its own ```README.md``` file in order to 
 - [**SASPSO - Self Adaptive Standard Particle Swarm Optimization**](include/SASPSO/README.md)
   - The SASPSO algorithm is a modified version of the Standard Particle Swarm Optimization 2011 (SPSO 2011) algorithm with **adaptive search parameters**.
   - Constrained optimization available with a constraint handling technique based on the **adaptive relaxation method** integrated with the **feasibility-based rule**.
-- **SECOND ALGORITHM**
-  - Brief description
-  - Constrained opt provided / not provided
+- [**ABC - Artificial Bee Colony**](include/ABC/README.md)
+  - The ABC algorithm is inspired by the foraging behavior of honey bees. It simulates the intelligent food searching behavior of a honey bee swarm.
+  - Constrained optimization available with a constraint handling technique based on the **feasibility-based rule**.
 - **THIRD ALGORITHM**
   - Brief description
   - Constrained opt provided / not provided

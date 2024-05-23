@@ -19,20 +19,20 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSED"*/
 
-/*#define dimension 8
+#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"*/
+#define problem_name "G10"
 
-#define dimension 30
+/*#define dimension 30
 #define test_problem TestProblems::GRIEWANK
-#define problem_name "GRIEWANK"
+#define problem_name "GRIEWANK"*/
 
 /*#define dimension 10
 #define test_problem TestProblems::G7
 #define problem_name "G7"*/
 
 
-int optimize()
+/*int optimize()
 {
 	constexpr int log_interval = 50;
 	std::vector<double> best_values;
@@ -54,7 +54,7 @@ int optimize()
 	// Get the exact global minimum
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < 1; i++)
 	{
 	std::unique_ptr<Optimizer<dimension>> opt_p = std::make_unique<ABC<dimension>>(problem, particles, iter);//, 1e-10);
 	auto abc_ptr = dynamic_cast<ABC<dimension> *>(opt_p.get());
@@ -78,14 +78,18 @@ int optimize()
 	file_out << "# Bees: " << particles << std::endl;
 	file_out << "# Problem: " << problem_name << std::endl;
 
-	file_out << "Iters,value,violation,threshold,feasible_bees" << std::endl;*/
+	file_out << "Iters,value,violation,threshold,feasible_bees" << std::endl;
 
 	//saspso_ptr->initialize_parallel();
 	//saspso_ptr->optimize_parallel(history, violation, feasible, threshold, log_interval);
     abc_ptr->initialize_parallel();
+	//abc_ptr->initialize();
+
     //abc_ptr->print_initizalization();
     abc_ptr->optimize_parallel();
-    //abc_ptr->optimize(/*history, violation, feasible, threshold, log_interval*/);
+	//abc_ptr->optimize();
+
+    //abc_ptr->optimize(/*history, violation, feasible, threshold, log_interval);
 
     // Get the minimum value found
     double found_value = abc_ptr->get_global_best_value();
@@ -93,7 +97,7 @@ int optimize()
 	for (int i = 0; i < found_position.size(); i++)
 	{
 		std::cout << "Position[" << i << "]: " << found_position[i] << std::endl;
-	}*/
+	}
 	std::cout << "Exact value: " << exact_value << std::endl;
     std::cout << "Found value: " << found_value << std::endl;
 	std::cout << std::endl;
@@ -130,8 +134,10 @@ int optimize()
 	//std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
 	//std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
     std::cout << std::endl << "Absolute error: " << std::abs(found_value - exact_value) << std::endl;
-    std::cout << "Relative error: " << std::abs(found_value - exact_value) / exact_value << std::endl;
-
+	if (exact_value != 0)
+	{
+	std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
+	}
 /*	// Store on file
 	for (int i = 0; i < history.size(); i++)
 	{
@@ -142,9 +148,78 @@ int optimize()
 		file_out << feasible[i] << std::endl;
 	}
 	file_out.close();
-*/
+
+	return 0;
+}*/
+
+int optimize()
+{
+	constexpr int log_interval = 50;
+
+	int iter = 6000;
+	int particles = 20;
+	auto problem = TestProblems::create_problem<dimension>(test_problem);
+
+	// Preliminary informations to std out
+	std::cout << "Serial optimization" << std::endl;
+	std::cout << "Logs in /output/abc_optimize.csv" << std::endl;
+
+	std::cout << "Problem: " << problem_name << std::endl;
+	std::cout << "Max iterations: " << iter << std::endl;
+	std::cout << "Num particles: " << particles << std::endl;
+
+	// Initialize history
+	std::vector<double> history, violation, feasible;
+
+	std::unique_ptr<Optimizer<dimension>> opt_p = std::make_unique<ABC<dimension>>(problem, particles, iter);
+	auto abc_ptr = dynamic_cast<ABC<dimension> *>(opt_p.get());
+	if (!abc_ptr)
+	{
+		std::cerr << "Error: dynamic_cast failed" << std::endl;
+		return 1;
+	}
+
+	std::ofstream file_out;
+	file_out.open("../output/abc_optimize.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
+
+	// Write comments and header
+	file_out << "# Fitness, constraints violation and feasible particles over iterations" << std::endl;
+	file_out << "# Dimension: " << dimension << std::endl;
+	file_out << "# Particles: " << particles << std::endl;
+	file_out << "# Problem: " << problem_name << std::endl;
+
+	file_out << "Iters,value,violation,feasible_particles" << std::endl;
+
+	abc_ptr->initialize();
+	abc_ptr->optimize(history, violation, feasible, log_interval);
+
+	// Get the exact global minimum
+	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
+
+	// Print the final error
+	std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+	if (exact_value != 0)
+	{
+	std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
+	}
+
+	// Store on file
+	for (int i = 0; i < history.size(); i++)
+	{
+		file_out << i * log_interval << ",";
+		file_out << history[i] << ",";
+		file_out << violation[i] << ",";
+		file_out << feasible[i] << std::endl;
+	}
+	file_out.close();
 	return 0;
 }
+
 
 int serial_parallel_test()
 {

@@ -275,7 +275,10 @@ int optimize()
 
 	// Print the final error
 	std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+	if (exact_value != 0)
+	{
 	std::cout << "Relative error: " << std::abs(history.back() - exact_value) / exact_value << std::endl;
+	}
 
 	// Store on file
 	for (int i = 0; i < history.size(); i++)
