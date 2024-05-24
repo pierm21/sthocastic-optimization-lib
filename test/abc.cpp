@@ -220,6 +220,78 @@ int optimize()
 	return 0;
 }
 
+// test the time as function of the number of particles
+int time_numparticles_test()
+{
+	int iter = 6000;
+	int max_particles = 1000;
+	constexpr int log_interval = 20;
+	constexpr int init_particles = 20;
+	auto problem = TestProblems::create_problem<dimension>(test_problem);
+
+	// Preliminary informations to std out
+	std::cout << "Time and Speedup as function of colony size." << std::endl;
+	std::cout << "Logs in /output/abc_time_numparticles.csv" << std::endl;
+
+	std::cout << "Problem: " << problem_name << std::endl;
+	std::cout << "Max iterations: " << iter << std::endl;
+	std::cout << "Log interval: " << log_interval << std::endl;
+
+	// Get the number of omp threads
+	int tot_threads = 0;
+#pragma omp parallel
+	{
+#pragma omp single
+		tot_threads = omp_get_num_threads();
+	}
+
+	// Initialize the file
+	std::ofstream file_out;
+	file_out.open("../output/abc_time_numparticles.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
+	// Write comments and header to file
+	file_out << "# Execution time as function of the colony size" << std::endl;
+	file_out << "# Problem: " << problem_name << std::endl;
+	file_out << "# Dimension: " << dimension << std::endl;
+	file_out << "# Threads: " << tot_threads << std::endl;
+	file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
+
+	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
+	std::cout << "Logging every " << log_interval << " iterations" << std::endl;
+
+	for (int i = init_particles; i <= max_particles; i += log_interval)
+	{
+		// Print progress to stdout
+	//	if ((i) % (log_interval) == 0)
+			std::cout << "Starting test with " << i << " particle(s)" << std::endl;
+		// Optimize the problem serially
+		std::unique_ptr<ABC<dimension>> opt = std::make_unique<ABC<dimension>>(problem, i, iter);
+		opt->initialize();
+		auto t1 = std::chrono::high_resolution_clock::now();
+		opt->optimize();
+		auto t2 = std::chrono::high_resolution_clock::now();
+		// Optimize parallel
+		opt = std::make_unique<ABC<dimension>>(problem, i, iter);
+		opt->initialize_parallel();
+		auto t3 = std::chrono::high_resolution_clock::now();
+		opt->optimize_parallel();
+		auto t4 = std::chrono::high_resolution_clock::now();
+
+		// Write data to file
+		file_out << i << ",";
+		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
+		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
+		file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count())
+			/ std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+	}
+	file_out.close();
+	return 0;
+}
+
 
 int serial_parallel_test()
 {
@@ -293,8 +365,8 @@ int main(int argc, char **argv)
 	/*else*/
 	if (test == "serial_parallel")
 		serial_parallel_test();
-	//else if (test == "time_numparticles")
-	//	time_numparticles_test();
+	else if (test == "time_numparticles")
+		time_numparticles_test();
 	else if (test == "optimize")
 		optimize();
 	else

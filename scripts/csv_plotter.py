@@ -153,6 +153,23 @@ elif sys.argv[1] == "abc_optimize.csv":
     ax = axes[0]
 
 
+# ====== Plot for the abc_time_numparticles.csv ======
+elif sys.argv[1] == "abc_time_numparticles.csv":
+	plt.figure(figsize=(12, 10))
+	ax = sns.lineplot(data=data.Serial_time, color='blue', linewidth=3)
+	sns.lineplot(data=data.Parallel_time, color='red', ax=ax, linewidth=3)
+	ax2 = ax.twinx()
+	sns.lineplot(data=data.Speedup, ax=ax2, color='green', linewidth=3)
+	ax.legend(handles=[Line2D([], [], marker='_', color='blue', label='Serial'),
+					   Line2D([], [], marker='_', color='red',  label='Parallel'),
+					   Line2D([], [], marker='_', color='green',  label='Speedup')],
+			fontsize=14)
+	ax.set_ylabel("Time (ms)", fontsize=16)
+	ax2.set_ylabel("Speedup", fontsize=16)
+	ax.set_xlabel("Number of particles", fontsize=16)
+
+
+
 # ====== If the csv is not recognized ======
 else:
 	print("File not supported.")

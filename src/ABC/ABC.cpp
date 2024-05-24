@@ -264,7 +264,7 @@ void ABC<dim>::initialize_parallel()
 	// Resize the colony, needed since threads performs direct access to the vector
 	colony_.resize(colony_size_);
 
-#pragma omp parallel shared(colony_, problem, global_best_position_, global_best_value_, global_best_constraint_violation_)
+#pragma omp parallel num_threads(8) shared(colony_, problem, global_best_position_, global_best_value_, global_best_constraint_violation_)
 	{
 
 		// Instantiate the marsenne twister, one for each thread since it is not thread safe
@@ -322,7 +322,7 @@ void ABC<dim>::optimize_parallel()
 	size_t local_best_index = 0;
 
 //  Outer optimization loop over all the iterations
-#pragma omp parallel num_threads(4) shared(colony_) firstprivate(local_best_index, current_iter)
+#pragma omp parallel num_threads(8) shared(colony_) firstprivate(local_best_index, current_iter)
 	{
 		double local_fitness_value;
 		double local_constraint_violation;
