@@ -156,7 +156,7 @@ Problem<30> TestProblems::create_problem<30>(ProblemName p)
 				prod *= cos(x[i] / sqrt(i + 1));
 			}
 			ret += sum / 4000.0 - prod + 1;
-			return ret;
+			return ret + 1;
 		};
 
 		RealVector<30> lb;
@@ -287,7 +287,7 @@ double TestProblems::get_exact_value(ProblemName p)
 	}
 	else if (p == GRIEWANK && dim == 30)
 	{
-		return 0;
+		return 1;
 	}
 	else
 		throw std::runtime_error("Problem not implemented.\n \

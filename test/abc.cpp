@@ -19,17 +19,17 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSED"*/
 
-#define dimension 8
+/*#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"
+#define problem_name "G10"*/
 
 /*#define dimension 30
 #define test_problem TestProblems::GRIEWANK
 #define problem_name "GRIEWANK"*/
 
-/*#define dimension 10
+#define dimension 10
 #define test_problem TestProblems::G7
-#define problem_name "G7"*/
+#define problem_name "G7"
 
 
 /*int optimize()
@@ -352,7 +352,7 @@ int main(int argc, char **argv)
 	if (argc != 2)
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
-		std::cout << "Available tests for SASPSO algorithm: static_adaptive, serial_parallel, time_numparticles" << std::endl;
+		std::cout << "Available tests for ABC algorithm: serial_parallel, time_numparticles" << std::endl;
 		return -1;
 	}
 	// Create if it not exist the output directory
@@ -360,9 +360,6 @@ int main(int argc, char **argv)
 
 	// Get from command line the required test
 	std::string test = argv[1];
-//	if (test == "static_adaptive")
-//		static_adaptive_test();
-	/*else*/
 	if (test == "serial_parallel")
 		serial_parallel_test();
 	else if (test == "time_numparticles")
@@ -372,7 +369,7 @@ int main(int argc, char **argv)
 	else
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
-		std::cout << "Available tests for SASPSO algorithm: static_adaptive, serial_parallel, time_numparticles" << std::endl;
+		std::cout << "Available tests for ABC algorithm: serial_parallel, time_numparticles" << std::endl;
 		return -1;
 	}
 

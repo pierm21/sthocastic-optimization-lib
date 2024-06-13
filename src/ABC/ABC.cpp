@@ -135,7 +135,7 @@ template <std::size_t dim>
 void ABC<dim> :: optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval)
 {
 	int current_iter = 0;
-	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << "violation threshold" << " | " << "global best index" << std::endl;
+	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << std::endl;
 
 
 	std::uniform_real_distribution<double> distr(0, 1.0);
@@ -414,15 +414,15 @@ void ABC<dim>::optimize_parallel()
 				}
 			}
 
-			// Copy the private bees to the global colony
+			// Update the current iteration
+			current_iter++;
+		}
+
+		// Copy the private bees to the global colony
 			for (size_t i = 0; i < private_colony.size(); ++i)
 			{
 				colony_[i + num_private_colony * thread_id] = private_colony[i];
 			}
-
-			// Update the current iteration
-			current_iter++;
-		}
 
 		// file_out << "Best value: " << global_best_value_ << "       Violation: "<< global_best_constraint_violation_<< std::endl;
 	}
