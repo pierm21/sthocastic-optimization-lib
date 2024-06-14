@@ -132,11 +132,10 @@ void ABC<dim>::optimize()
 }
 
 template <std::size_t dim>
-void ABC<dim> :: optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval)
+void ABC<dim>::optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval)
 {
 	int current_iter = 0;
 	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << std::endl;
-
 
 	std::uniform_real_distribution<double> distr(0, 1.0);
 	std::random_device rand_dev;
@@ -237,7 +236,7 @@ void ABC<dim> :: optimize(std::vector<double> &optimum_history, std::vector<doub
 
 			std::cout << std::setprecision(20) << current_iter << " | " << global_best_value_ << " | " << global_best_constraint_violation_ << " | " << feasible_bees << std::endl;
 		}
-		
+
 		// Update the current iteration
 		current_iter++;
 		// file_out << "Best value: " << global_best_value_ << "       Violation: "<< global_best_constraint_violation_<< std::endl;
@@ -258,6 +257,25 @@ void ABC<dim>::print_results(std::ostream &out) const
 template <std::size_t dim>
 void ABC<dim>::initialize_parallel()
 {
+	int mpi_rank, mpi_size;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+	// Workload distribution among MPI processes:
+	//	- Each process will have a number of bees equal to ceil(colony_size_ / mpi_size)
+	//	- If the number of bees is not divisible by the number of processes, the first process will have less bees
+	unsigned int process_colony_size = colony_size_ / mpi_size;
+	if (colony_size_ % mpi_size != 0)
+	{
+		process_colony_size++;
+		if (mpi_rank == 0)
+		{
+			process_colony_size = colony_size_ - process_colony_size * (mpi_size - 1);
+		}
+	}
+	// Each process needs to know only its colony
+	colony_size_ = process_colony_size;
+
 	// Create a shared pointer to the problem
 	std::shared_ptr<Problem<dim>> problem = std::make_shared<Problem<dim>>(Optimizer<dim>::problem_);
 
@@ -418,24 +436,57 @@ void ABC<dim>::optimize_parallel()
 			current_iter++;
 		}
 
-		// Copy the private bees to the global colony
-			for (size_t i = 0; i < private_colony.size(); ++i)
-			{
-				colony_[i + num_private_colony * thread_id] = private_colony[i];
-			}
+		// Copy the private bees to the global colony (simd removes any loop-carried dependency)
+#pragma omp simd
+		for (size_t i = 0; i < private_colony.size(); ++i)
+		{
+			colony_[i + num_private_colony * thread_id] = private_colony[i];
+		}
 
 		// file_out << "Best value: " << global_best_value_ << "       Violation: "<< global_best_constraint_violation_<< std::endl;
 	}
-	 	// Find the best bee in the colony
-		for (size_t i = 0; i < colony_size_; ++i)
+
+	// Find the best bee in the process colony
+	for (size_t i = 0; i < colony_size_; ++i)
+	{
+		if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_))
 		{
-			if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_))
-			{
-				global_best_position_ = colony_[i].get_position();
-				global_best_value_ = colony_[i].get_value();
-				global_best_constraint_violation_ = colony_[i].get_constraint_violation();
-			}
+			global_best_position_ = colony_[i].get_position();
+			global_best_value_ = colony_[i].get_value();
+			global_best_constraint_violation_ = colony_[i].get_constraint_violation();
 		}
+	}
+
+	// Create the custom MPI reduction operation
+	MPI_Op mpi_custom_reduction;
+	MPI_Op_create((MPI_User_function *)mpi_custom_reduction_ABC<dim>, 1, &mpi_custom_reduction);
+
+	// Create the mpi type for the ABC_result structure
+	MPI_Datatype mpi_abc_result;
+	MPI_Type_contiguous(2 + dim, MPI_DOUBLE, &mpi_abc_result);
+	MPI_Type_commit(&mpi_abc_result);
+
+	int mpi_rank = 0;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
+	// Initialize the data structure for the local process to be reduced
+	double loc_result[2 + dim];
+	double glob_result[2 + dim];
+
+	loc_result[0] = global_best_value_;
+	loc_result[1] = global_best_constraint_violation_;
+	for (std::size_t i = 0; i < dim; ++i)
+		loc_result[2 + i] = global_best_position_[i];
+
+	// MPI reduction over the process global best values to find the global global best values
+	MPI_Reduce(&loc_result, &glob_result, 1, mpi_abc_result, mpi_custom_reduction, 0, MPI_COMM_WORLD);
+	if (mpi_rank == 0)
+	{
+		global_best_value_ = glob_result[0];
+		global_best_constraint_violation_ = glob_result[1];
+		for (std::size_t i = 0; i < dim; ++i)
+			global_best_position_[i] = glob_result[2 + i];
+	}
 }
 
 template <std::size_t dim>
@@ -450,5 +501,31 @@ void ABC<dim>::print_initizalization(std::ostream &out) const
 			std::cout << colony_[j].get_position()[i] << " " << std::endl;
 		}
 		std::cout << std::endl;
+	}
+}
+
+template <std::size_t dim>
+void mpi_custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
+{
+	double *in = (double *)invec;
+	double *inout = (double *)inoutvec;
+
+	bool is_better = false;
+	// Apply the feasibility rule to check wheter the invec solution is better than inout
+	if (in[1] == 0 && inout[1] > 0)
+		is_better = true;
+	else if (in[1] > 0 && inout[1] == 0)
+		is_better = false;
+	else if (in[1] == 0 && inout[1] == 0)
+		is_better = in[0] < inout[0];
+	else
+		is_better = in[1] < inout[1];
+
+	if (is_better)
+	{
+		inout[0] = in[0];
+		inout[1] = in[1];
+		for (std::size_t i = 0; i < dim; ++i)
+			inout[i + 2] = in[i + 2];
 	}
 }

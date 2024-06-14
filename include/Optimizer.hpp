@@ -36,7 +36,7 @@ public:
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process exploiting parallelism
-	 * 
+	 *
 	 */
 	virtual void initialize_parallel() = 0;
 
