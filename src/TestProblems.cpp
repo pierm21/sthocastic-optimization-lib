@@ -2,12 +2,12 @@
 
 #include "TestProblems.hpp"
 
-template <size_t dim>
-Problem<dim> TestProblems::create_problem(ProblemName p)
+template <>
+Problem<2> TestProblems::create_problem(ProblemName p)
 {
-	if (p == TOWNSEND && dim == 2)
+	if (p == TOWNSEND)
 	{
-		auto f = [](const RealVector<dim> &x)
+		auto f = [](const RealVector<2> &x)
 		{
 			double ret = 0;
 			ret -= (cos((x[0] - 0.1) * x[1]) * cos((x[0] - 0.1) * x[1]));
@@ -15,12 +15,12 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-10.25, -10.5);
-		RealVector<dim> ub(10.25, 10.75);
+		RealVector<2> lb(-10.25, -10.5);
+		RealVector<2> ub(10.25, 10.75);
 
-		Problem<dim> problem(f, lb, ub);
+		Problem<2> problem(f, lb, ub);
 
-		problem.add_inequality_constraint([](const RealVector<dim> &x)
+		problem.add_inequality_constraint([](const RealVector<2> &x)
 										  {
 			double t = atan2(x[0], x[1]);
 			double ret = 0;
@@ -31,9 +31,9 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 
 		return problem;
 	}
-	else if (p == GOMEZ_LEVY && dim == 2)
+	else if (p == GOMEZ_LEVY)
 	{
-		auto f = [](const RealVector<dim> &x)
+		auto f = [](const RealVector<2> &x)
 		{
 			double ret = 0;
 			double x2 = x[0] * x[0];
@@ -44,12 +44,12 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<dim> lb(-10, -10);
-		RealVector<dim> ub(100.75, 100);
+		RealVector<2> lb(-10, -10);
+		RealVector<2> ub(100.75, 100);
 
-		Problem<dim> problem(f, lb, ub);
+		Problem<2> problem(f, lb, ub);
 
-		problem.add_inequality_constraint([](const RealVector<dim> &x)
+		problem.add_inequality_constraint([](const RealVector<2> &x)
 										  {
 			double ret = 0;
 			ret -= std::sin(4 * M_PI * x[0]);
@@ -57,14 +57,14 @@ Problem<dim> TestProblems::create_problem(ProblemName p)
 			ret -= 1.5;
 			return ret; });
 
-		problem.add_inequality_constraint([](const RealVector<dim> &x)
+		problem.add_inequality_constraint([](const RealVector<2> &x)
 										  {
 			double ret = 0;
 			ret += x[0] + x[1];
 			ret -= 6.0;
 			return ret; });
 
-		problem.add_inequality_constraint([](const RealVector<dim> &x)
+		problem.add_inequality_constraint([](const RealVector<2> &x)
 										  {
 			double ret = 0;
 			ret -= (x[0] + x[1]);

@@ -35,12 +35,14 @@ public:
 	 * @param problem the problem to be optimized
 	 * @return std::unique_ptr<Optimizer<dim>> the pointer to the created optimizer
 	 */
-	std::unique_ptr<Optimizer<dim>> create(OptimizerName name, Problem<dim>& problem)
+	static std::unique_ptr<Optimizer<dim>> create(
+		OptimizerName name, Problem<dim>& problem, int size, int iter, double tol=1e-6, double omega_s = 0.9,
+		 double omega_f = 0.4, double phi1_s = 2.5, double phi1_f = 0.3, double phi2_s = 2.5, double phi2_f = 0.3)
 	{
 		if(name == OptimizerName::SelfAdaptiveSPSO)
-			return std::make_unique<SASPSO<dim>>(problem);
+			return std::make_unique<SASPSO<dim>>(problem, size, iter, tol);
 		else if(name == OptimizerName::ArtificialBeeColony)
-			return std::make_unique<ABC<dim>>(problem);
+			return std::make_unique<ABC<dim>>(problem, size, iter);
 		else
 			throw std::runtime_error("Invalid optimizer name");
 	}
