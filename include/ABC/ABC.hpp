@@ -107,7 +107,16 @@ public:
 	void print_initizalization(std::ostream &out = std::cout) const;
 };
 
-
+/**
+ * @brief Custom MPI reduction function implementing the feasibility-based rule for the ABC algorithm
+ * This function must be used for the MPI_Op_create function to create a custom MPI_Op for the reduction
+ *
+ * @tparam dim the dimension of the space in which the function is defined
+ * @param invec a pointer to the first input array (or value) to be reduced
+ * @param inoutvec a pointer to the second input array (or value) of the reduction and where the output is stored
+ * @param len the number of elements in the input arrays (or 1 if the input is a single value)
+ * @param datatype the MPI datatype of the input arrays
+ */
 template <std::size_t dim>
 void custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
 
