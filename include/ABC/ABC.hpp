@@ -109,6 +109,6 @@ public:
 
 
 template <std::size_t dim>
-void mpi_custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
+void custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
 
 #include "ABC/ABC.cpp"

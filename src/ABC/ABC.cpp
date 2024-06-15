@@ -436,30 +436,21 @@ void ABC<dim>::optimize_parallel()
 			current_iter++;
 		}
 
-		// Copy the private bees to the global colony (simd removes any loop-carried dependency)
-#pragma omp simd
-		for (size_t i = 0; i < private_colony.size(); ++i)
+// Reduction: each thread updates the global values (locally to each process) if it has a better solution
+#pragma omp critical(update_global_best_init)
+		if (private_colony[local_best_index].feasibility_rule(global_best_value_, global_best_constraint_violation_))
 		{
-			colony_[i + num_private_colony * thread_id] = private_colony[i];
+			global_best_position_ = private_colony[local_best_index].get_position();
+			global_best_value_ = private_colony[local_best_index].get_value();
+			global_best_constraint_violation_ = private_colony[local_best_index].get_constraint_violation();
 		}
 
 		// file_out << "Best value: " << global_best_value_ << "       Violation: "<< global_best_constraint_violation_<< std::endl;
 	}
 
-	// Find the best bee in the process colony
-	for (size_t i = 0; i < colony_size_; ++i)
-	{
-		if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_))
-		{
-			global_best_position_ = colony_[i].get_position();
-			global_best_value_ = colony_[i].get_value();
-			global_best_constraint_violation_ = colony_[i].get_constraint_violation();
-		}
-	}
-
 	// Create the custom MPI reduction operation
 	MPI_Op mpi_custom_reduction;
-	MPI_Op_create((MPI_User_function *)mpi_custom_reduction_ABC<dim>, 1, &mpi_custom_reduction);
+	MPI_Op_create((MPI_User_function *)custom_reduction_ABC<dim>, 1, &mpi_custom_reduction);
 
 	// Create the mpi type for the ABC_result structure
 	MPI_Datatype mpi_abc_result;
@@ -505,7 +496,7 @@ void ABC<dim>::print_initizalization(std::ostream &out) const
 }
 
 template <std::size_t dim>
-void mpi_custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
+void custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
 {
 	double *in = (double *)invec;
 	double *inout = (double *)inoutvec;

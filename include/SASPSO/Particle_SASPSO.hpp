@@ -33,7 +33,6 @@ template <size_t dim>
 class Particle_SASPSO : public Particle<dim>
 {
 private:
-	
 	RealVector<dim> velocity_;
 	double constraint_violation_;
 
