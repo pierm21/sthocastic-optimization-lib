@@ -293,6 +293,47 @@ int optimize()
 	return 0;
 }
 
+int simulation()
+{
+	int iter = 100;
+	int particles = 20;
+	double tol = 1e-16;
+	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
+
+	// Preliminary informations to std out
+	std::cout << "Data for particle simulation" << std::endl;
+	std::cout << "Saving in /output/saspso_simulation.csv" << std::endl;
+
+	// File opening
+	std::ofstream file_out;
+	file_out.open("../output/saspso_simulation.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
+
+	// Write comments and header
+	file_out << "# Particle simulation data" << std::endl;
+	file_out << "# Problem: GOMEZ_LEVY" << std::endl;
+	file_out << "# Dimension: 2" << std::endl;
+	file_out << "# Particles: " << particles << std::endl;
+	file_out << "# Tolerance: " << tol << std::endl;
+
+	// Dummy vector
+	std::vector<double> dummy;
+
+	// Initialize the solver and optimize the problem storing only the particle simulation
+	std::unique_ptr<SASPSO<2>> opt = std::make_unique<SASPSO<2>>(problem, particles, iter, tol);
+	opt->initialize();
+	opt->optimize(dummy, dummy, 1, &file_out);
+
+	// Close the file
+	file_out.close();
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	// Check the number of arguments
@@ -315,6 +356,8 @@ int main(int argc, char **argv)
 		time_numparticles_test();
 	else if (test == "optimize")
 		optimize();
+	else if (test == "simulation")
+		simulation();
 	else
 	{
 		std::cout << "Usage: ./test-saspso test_name" << std::endl;
