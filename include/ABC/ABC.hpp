@@ -28,7 +28,6 @@ private:
 	double global_best_value_;
 	double global_best_constraint_violation_;
 
-
 	std::vector<Bee<dim>> colony_;
 
 	double violation_threshold_;
@@ -46,9 +45,8 @@ public:
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter),
 		  MR_(MR), tol_(tol),
-		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit),				//TODO: esnure that dim can be used here
-		  SPP_(SPP == -1 ? static_cast<int>(colony_size* dim * 0.5) : SPP){};
-
+		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit), // TODO: esnure that dim can be used here
+		  SPP_(SPP == -1 ? static_cast<int>(colony_size * dim * 0.5) : SPP){};
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process
@@ -93,31 +91,29 @@ public:
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() const override {return global_best_value_;}
+	double get_global_best_value() const override { return global_best_value_; }
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() const override {return global_best_position_;}
+	const RealVector<dim> &get_global_best_position() const override { return global_best_position_; }
 
-	double get_global_best_constraint_violation() const {return global_best_constraint_violation_;}
+	double get_global_best_constraint_violation() const { return global_best_constraint_violation_; }
 
 	void print_initizalization(std::ostream &out = std::cout) const;
-};
 
-/**
- * @brief Custom MPI reduction function implementing the feasibility-based rule for the ABC algorithm
- * This function must be used for the MPI_Op_create function to create a custom MPI_Op for the reduction
- *
- * @tparam dim the dimension of the space in which the function is defined
- * @param invec a pointer to the first input array (or value) to be reduced
- * @param inoutvec a pointer to the second input array (or value) of the reduction and where the output is stored
- * @param len the number of elements in the input arrays (or 1 if the input is a single value)
- * @param datatype the MPI datatype of the input arrays
- */
-template <std::size_t dim>
-void custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
+	/**
+	 * @brief Custom MPI reduction function implementing the feasibility-based rule for the ABC algorithm
+	 * This function must be used for the MPI_Op_create function to create a custom MPI_Op for the reduction
+	 *
+	 * @param invec a pointer to the first input array (or value) to be reduced
+	 * @param inoutvec a pointer to the second input array (or value) of the reduction and where the output is stored
+	 * @param len the number of elements in the input arrays (or 1 if the input is a single value)
+	 * @param datatype the MPI datatype of the input arrays
+	 */
+	static void custom_reduction(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
+};
 
 #include "ABC/ABC.cpp"

@@ -450,7 +450,7 @@ void ABC<dim>::optimize_parallel()
 
 	// Create the custom MPI reduction operation
 	MPI_Op mpi_custom_reduction;
-	MPI_Op_create((MPI_User_function *)custom_reduction_ABC<dim>, 1, &mpi_custom_reduction);
+	MPI_Op_create((MPI_User_function *)ABC<dim>::custom_reduction, 1, &mpi_custom_reduction);
 
 	// Create the mpi type for the ABC_result structure
 	MPI_Datatype mpi_abc_result;
@@ -496,7 +496,7 @@ void ABC<dim>::print_initizalization(std::ostream &out) const
 }
 
 template <std::size_t dim>
-void custom_reduction_ABC(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
+void ABC<dim>::custom_reduction(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
 {
 	double *in = (double *)invec;
 	double *inout = (double *)inoutvec;
