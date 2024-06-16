@@ -2,6 +2,7 @@
 
 #include "Optimizer.hpp"
 #include "Bee.hpp"
+#include "mpi.h"
 
 /**
  * @brief Specialization of the Optimizer class implementing the Artificial Bee Colony Optimization (ABC) algorithm.
@@ -27,7 +28,6 @@ private:
 	double global_best_value_;
 	double global_best_constraint_violation_;
 
-
 	std::vector<Bee<dim>> colony_;
 
 	double violation_threshold_;
@@ -39,15 +39,14 @@ public:
 	 *
 	 * @param problem the Problem to be optimized
 	 * @param colony_size the number of particles in the swarm
-	 */  
+	 */
 
 	ABC(const Problem<dim> &problem, int colony_size = 40, int max_iter = 6000, int limit = -1, int SPP = -1, double MR = 0.8, double tol = 1e-6)
 		: Optimizer<dim>(problem),
-		  colony_size_(colony_size), max_iter_(max_iter), 
+		  colony_size_(colony_size), max_iter_(max_iter),
 		  MR_(MR), tol_(tol),
-		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit),				//TODO: esnure that dim can be used here
-		  SPP_(SPP == -1 ? static_cast<int>(colony_size* dim * 0.5) : SPP){};
-
+		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit), // TODO: esnure that dim can be used here
+		  SPP_(SPP == -1 ? static_cast<int>(colony_size * dim * 0.5) : SPP){};
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process
@@ -73,7 +72,7 @@ public:
 	 * @param violation_history the vector where to store the history of the best contraint violation found
 	 * @param interval the sampling interval in number of iterations
 	 */
-	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) override;
+	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50 , std::ostream *out = nullptr) override;
 
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs
@@ -102,14 +101,14 @@ public:
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() const override {return global_best_value_;};
+	double get_global_best_value() const override { return global_best_value_; }
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() const override {return global_best_position_;} 
+	const RealVector<dim> &get_global_best_position() const override { return global_best_position_; }
 
 	double get_global_best_constraint_violation() const {return global_best_constraint_violation_;};
 };

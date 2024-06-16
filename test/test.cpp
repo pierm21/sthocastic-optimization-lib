@@ -3,6 +3,7 @@
 #include <memory>
 #include <chrono>
 #include <filesystem>
+#include <mpi.h>
 
 #include "TestProblems.hpp"
 #include "OptimizerFactory.hpp"
@@ -31,8 +32,7 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::G7
 #define problem_name "G7"*/
 
-
-int optimize(const typename OptimizerFactory<dimension>::OptimizerName& algorithm_name)
+int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
 	constexpr int log_interval = 50;
 
@@ -76,7 +76,8 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName& algorith
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
 	// Print the final error
-	std::cout << std::endl << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+	std::cout << std::endl
+			  << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
 
 	// Store on file
 	for (int i = 0; i < history.size(); i++)
@@ -91,7 +92,7 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName& algorith
 }
 
 // test the time as function of the number of particles
-int time_numparticles_test(const typename OptimizerFactory<dimension>::OptimizerName& algorithm_name)
+int time_numparticles_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
 	int iter = 6000;
 	int max_particles = 500;
@@ -154,14 +155,13 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 		file_out << i << ",";
 		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
 		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
-		file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count())
-			/ std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+		file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
 	}
 	file_out.close();
 	return 0;
 }
 
-int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName& algorithm_name)
+int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
 	constexpr int log_interval = 10;
 
@@ -248,7 +248,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	return 0;
 }
 
-int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerName& algorithm_name)
+int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
 	// Initialize problem and solver parameters
 	constexpr int log_interval = 50;
@@ -293,21 +293,81 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	return 0;
 }
 
+int simulation(const typename OptimizerFactory<2>::OptimizerName &algorithm_name)
+{
+	int iter = 100;
+	int particles = 20;
+	double tol = 1e-16;
+	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
+
+	// Preliminary informations to std out
+	std::cout << "Data for particle simulation" << std::endl;
+	std::cout << "Saving in /output/saspso_simulation.csv" << std::endl;
+
+	// File opening
+	std::ofstream file_out;
+	file_out.open("../output/saspso_simulation.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
+
+	// Write comments and header
+	file_out << "# Particle simulation data" << std::endl;
+	file_out << "# Problem: GOMEZ_LEVY" << std::endl;
+	file_out << "# Dimension: 2" << std::endl;
+	file_out << "# Particles: " << particles << std::endl;
+	file_out << "# Tolerance: " << tol << std::endl;
+
+	// Dummy vector
+	std::vector<double> dummy;
+
+	// Initialize the solver and optimize the problem storing only the particle simulation
+	std::unique_ptr<Optimizer<2>> opt = OptimizerFactory<2>::create(algorithm_name, problem, particles, iter, tol);
+	opt->initialize();
+	opt->optimize(dummy, dummy, dummy, 1, &file_out);
+
+	// Close the file
+	file_out.close();
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
+	MPI_Init(&argc, &argv);
+
+	int mpi_rank = 0;
+	int mpi_size = 1;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+	if (mpi_rank == 0)
+	{
+		std::cout << "Running with " << mpi_size << " MPI processes" << std::endl;
+	}
+
 	// Check the number of arguments
 	if (argc != 3)
 	{
-		std::cout << "Usage: ./test test_name algorithm_name" << std::endl;
-		std::cout << "Available algorithms: ABC, SASPSO" << std::endl;
-		std::cout << "Available tests for SASPSO algorithm: optimize static_adaptive, serial_parallel, time_numparticles" << std::endl;
-		std::cout << "Available tests for ABC algorithm: optimize serial_parallel, time_numparticles" << std::endl;
+		if (mpi_rank == 0)
+		{
+			std::cout << "Usage: ./test test_name algorithm_name" << std::endl;
+			std::cout << "Available algorithms: ABC, SASPSO" << std::endl;
+			std::cout << "Available tests for SASPSO algorithm: optimize static_adaptive, serial_parallel, time_numparticles" << std::endl;
+			std::cout << "Available tests for ABC algorithm: optimize serial_parallel, time_numparticles" << std::endl;
+		}
+		MPI_Finalize();
 		return -1;
 	}
 	// Create if it not exist the output directory
-	fs::create_directory("../output");
+	if (mpi_rank == 0)
+	{
+		fs::create_directory("../output");
+	}
 
-    // Get from command line the algorithm to be tested
+	// Get from command line the algorithm to be tested
 	std::string algorithm = argv[2];
 	if (algorithm == "ABC")
 	{
@@ -321,9 +381,11 @@ int main(int argc, char **argv)
 			time_numparticles_test(OptimizerFactory<dimension>::ArtificialBeeColony);
 		else
 		{
-			std::cout << "Usage: ./test test_name algorithm_name" << std::endl;
-			std::cout << "Available tests for ABC algorithm: optimize, serial_parallel, time_numparticles" << std::endl;
-			return -1;
+			if (mpi_rank == 0)
+			{
+				std::cout << "Usage: ./test test_name algorithm_name" << std::endl;
+				std::cout << "Available tests for ABC algorithm: optimize, serial_parallel, time_numparticles" << std::endl;
+			}
 		}
 	}
 	else if (algorithm == "SASPSO")
@@ -338,19 +400,27 @@ int main(int argc, char **argv)
 			time_numparticles_test(OptimizerFactory<dimension>::SelfAdaptiveSPSO);
 		else if (test == "optimize")
 			optimize(OptimizerFactory<dimension>::SelfAdaptiveSPSO);
+		else if (test == "simulation")
+			simulation(OptimizerFactory<2>::SelfAdaptiveSPSO);
 		else
 		{
-			std::cout << "Usage: ./test test_name problem_name" << std::endl;
-			std::cout << "Available tests for SASPSO algorithm: optimize, static_adaptive, serial_parallel, time_numparticles" << std::endl;
-			return -1;
+			if(mpi_rank == 0)
+			{
+				std::cout << "Usage: ./test test_name problem_name" << std::endl;
+				std::cout << "Available tests for SASPSO algorithm: optimize, static_adaptive, serial_parallel, time_numparticles, simulation" << std::endl;
+			}
 		}
 	}
 	else
 	{
-		std::cout << "Usage: ./test algorithm test_name algorithm_name" << std::endl;
-		std::cout << "Available algorithms: ABC, SASPSO" << std::endl;
-		return -1;
+		if (mpi_rank == 0)
+		{
+			std::cout << "Usage: ./test test_name algorithm_name" << std::endl;
+			std::cout << "Available algorithms: ABC, SASPSO" << std::endl;
+		}
 	}
+
+	MPI_Finalize();
 
 	return 0;
 }

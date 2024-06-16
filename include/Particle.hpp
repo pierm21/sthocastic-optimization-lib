@@ -62,6 +62,6 @@ public:
 	 *
 	 * @return const RealVector& the position vector of the Particle
 	 */
-	const RealVector<dim> &get_position() const { return position_; }    
+	const RealVector<dim> &get_position() const { return position_; }
 
 };

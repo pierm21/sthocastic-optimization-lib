@@ -46,6 +46,7 @@ public:
 	 *
 	 * @param problem the Problem to be optimized
 	 * @param swarm_size the number of particles in the swarm
+	 * @param max_iter the maximum number of iterations to be performed
 	 * @param tol the tolerance used for checking constraint conditions
 	 * @param omega_s the starting value of the inertia weight
 	 * @param omega_f the final value of the inertia weight
@@ -84,14 +85,16 @@ public:
 	void optimize() override;
 
 	/**
-	 * @brief Optimize the given problem and store the history of the best value found every interval iterations
+	 * @brief Optimize the given problem and store the history of the best value and violation found every interval iterations.
+	 * It can also log the time evolution of all the particles to a file, if provided.
 	 *
 	 * @param optimum_history the vector where to store the history of the best value found
 	 * @param violation_history the vector where to store the history of the best contraint violation found
+	 * @param out a pointer to the output stream where to print the time evolution of all the particles (default: nullptr)
 	 * @param interval the sampling interval in number of iterations
 	 * @param feasible_history the vector where to store the history of the number of feasible solutions found
 	 */
-	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) override;
+	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50, std::ostream *out = nullptr) override;
 
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs

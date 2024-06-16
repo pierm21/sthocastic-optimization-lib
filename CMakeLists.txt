@@ -29,21 +29,27 @@ add_executable(test test/test.cpp)
 
 # set compiler flags
 target_compile_options(test PUBLIC -O3)
-add_compile_options(-Wall -Wextra) 
+add_compile_options(-Wall -Wextra)
 
-# find openmp and eigen libraries
+# find openmp, eigen, and MPI libraries
 #list(APPEND CMAKE_PREFIX_PATH "")
 find_package(OpenMP REQUIRED)
 find_package(Eigen3 3.3 REQUIRED NO_MODULE
    HINTS $ENV{mkEigenPrefix}/share/eigen3/cmake
 )
+find_package(MPI REQUIRED)
+
 # If Eigen is not found:
 #   Check if mk module eigen has been loaded
 #   You may want to pass a cmake flag -DCMAKE_PREFIX_PATH=path/to/eigen/cmake/config
 
+set(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+set(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+include_directories(${MPI_INCLUDE_PATH})
+
 # link custom libraries, openmp and eigen to executables
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(test PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen)
+    target_link_libraries(test PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen ${MPI_LIBRARIES})
 else()
     target_link_libraries(test ${LIBRARIES})
 endif()

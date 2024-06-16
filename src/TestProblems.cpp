@@ -44,8 +44,8 @@ Problem<2> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<2> lb(-10, -10);
-		RealVector<2> ub(100.75, 100);
+		RealVector<2> lb(-1, -1);
+		RealVector<2> ub(1, 1);
 
 		Problem<2> problem(f, lb, ub);
 
@@ -57,7 +57,7 @@ Problem<2> TestProblems::create_problem(ProblemName p)
 			ret -= 1.5;
 			return ret; });
 
-		problem.add_inequality_constraint([](const RealVector<2> &x)
+		/*problem.add_inequality_constraint([](const RealVector<dim> &x)
 										  {
 			double ret = 0;
 			ret += x[0] + x[1];
@@ -69,7 +69,7 @@ Problem<2> TestProblems::create_problem(ProblemName p)
 			double ret = 0;
 			ret -= (x[0] + x[1]);
 			ret -= 6.0;
-			return ret; });
+			return ret; });*/
 
 		return problem;
 	}

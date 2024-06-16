@@ -36,7 +36,7 @@ public:
 
 	/**
 	 * @brief Initialize the optimizator to start the optimization process exploiting parallelism
-	 * 
+	 *
 	 */
 	virtual void initialize_parallel() = 0;
 
@@ -50,7 +50,7 @@ public:
 	 * @brief Optimize the objective fufunction and store the results in the given vectors
 	 *
 	 */
-	virtual void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) = 0;
+	virtual void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50, std::ostream *out = nullptr) = 0;
 
 	/**
 	 * @brief Optimize the objective function exploiting parallelism
@@ -64,7 +64,8 @@ public:
 	 * @param optimum_history 
 	 * @param violation_history 
 	 * @param feasible_history 
-	 * @param interval 
+	 * @param interval
+	 * @param out
 	 */
 	virtual void optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) = 0;
 
