@@ -25,12 +25,10 @@ include_directories(include src test)
 # set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # create all the executables
-add_executable(test-saspso test/saspso.cpp)
-add_executable(test-abc test/abc.cpp)
+add_executable(test test/test.cpp)
 
 # set compiler flags
-target_compile_options(test-saspso PUBLIC -O3)
-target_compile_options(test-abc PUBLIC -O3 -g)
+target_compile_options(test PUBLIC -O3)
 add_compile_options(-Wall -Wextra)
 
 # find openmp, eigen, and MPI libraries
@@ -51,8 +49,7 @@ include_directories(${MPI_INCLUDE_PATH})
 
 # link custom libraries, openmp and eigen to executables
 if(OpenMP_CXX_FOUND)
-    target_link_libraries(test-saspso PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen)
-    target_link_libraries(test-abc PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen ${MPI_LIBRARIES})
+    target_link_libraries(test PUBLIC ${LIBRARIES} OpenMP::OpenMP_CXX Eigen3::Eigen ${MPI_LIBRARIES})
 else()
-    target_link_libraries(test-saspso ${LIBRARIES})
+    target_link_libraries(test ${LIBRARIES})
 endif()

@@ -92,8 +92,9 @@ public:
 	 * @param violation_history the vector where to store the history of the best contraint violation found
 	 * @param out a pointer to the output stream where to print the time evolution of all the particles (default: nullptr)
 	 * @param interval the sampling interval in number of iterations
+	 * @param feasible_history the vector where to store the history of the number of feasible solutions found
 	 */
-	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, const int interval = 50, std::ostream *out = nullptr);
+	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50, std::ostream *out = nullptr) override;
 
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs
@@ -109,7 +110,7 @@ public:
 	 * @param threshold_history the vector where to store the history of the violation thresholds
 	 * @param interval the sampling interval in number of iterations
 	 */
-	void optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, std::vector<double> &threshold_history, const int interval = 50);
+	void optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) override;
 
 	/**
 	 * @brief Print the results of the optimization process to the given output stream

@@ -50,21 +50,21 @@ y_grid = np.linspace(y_min - 1, y_max + 1, 1000)
 x_mesh, y_mesh = np.meshgrid(x_grid, y_grid)
 z_mesh = f(x_mesh, y_mesh)
 
+unique_iters = df['iter'].unique()
+
 def animate(i):
     ax.clear()
     iter_num = unique_iters[i]
     iter_data = df[df['iter'] == iter_num]
-    best_point = iter_data[iter_data['isbest']]
+    best_point = iter_data[iter_data['isbest'] == True]
 
     # Plot contour
     contour = ax.contourf(x_mesh, y_mesh, z_mesh, levels=np.linspace(best-20, best+20, 30), cmap='viridis', alpha=0.6)
-
     # Plot best point
-    ax.scatter(x_best, y_best, c='red', marker='+', label='Best Point')
+    ax.scatter(x_best, y_best, c='red', marker='+', label='Real optimium')
 
     ax.scatter(iter_data['x0'], iter_data['x1'], c='blue', label='Points')
-    if not best_point.empty:
-        ax.scatter(best_point['x0'], best_point['x0'], c='red', label='Best Point')
+    ax.scatter(best_point['x0'], best_point['x1'], c='red', label='Best Point')
 
     ax.set_title(f'Iteration {iter_num}')
     ax.set_xlabel('x')
@@ -75,8 +75,6 @@ def animate(i):
 
     ax.legend()
 
-
-unique_iters = df['iter'].unique()
 
 # Create animation
 ani = animation.FuncAnimation(fig, animate, frames=len(unique_iters), interval=200, repeat=False)
