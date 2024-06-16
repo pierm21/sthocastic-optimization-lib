@@ -40,9 +40,11 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	int particles = 20;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
+
 	// Preliminary informations to std out
-	std::cout << "Serial optimization" << std::endl;
-	std::cout << "Logs in /output/abc_optimize.csv" << std::endl;
+	std::cout << "Serial optimization for " << alg_name_str << std::endl;
+	std::cout << "Logs in /output/" + alg_name_str + "_optimize.csv" << std::endl;
 
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
@@ -54,7 +56,7 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
 
 	std::ofstream file_out;
-	file_out.open("../output/abc_optimize.csv");
+	file_out.open("../output/" + alg_name_str + "_optimize.csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
@@ -100,9 +102,11 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 	constexpr int init_particles = 20;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
+
 	// Preliminary informations to std out
-	std::cout << "Time and Speedup as function of colony size." << std::endl;
-	std::cout << "Logs in /output/abc_time_numparticles.csv" << std::endl;
+	std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
+	std::cout << "Logs in /output/" + alg_name_str + "_time_numparticles.csv" << std::endl;
 
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
@@ -118,7 +122,7 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 
 	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/abc_time_numparticles.csv");
+	file_out.open("../output/" + alg_name_str + "_time_numparticles.csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
@@ -170,9 +174,11 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
+
 	// Preliminary informations to std out
 	std::cout << "Error as function of performed iteration test (for static and adaptive)." << std::endl;
-	std::cout << "Logs in /output/saspso_static_adaptive.csv every " << log_interval << " iterations." << std::endl;
+	std::cout << "Logs in /output/" << alg_name_str << "_static_adaptive.csv every " << log_interval << " iterations." << std::endl;
 
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
@@ -180,7 +186,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 
 	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/saspso_static_adaptive.csv");
+	file_out.open("../output/" + alg_name_str + "_static_adaptive.csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
@@ -256,6 +262,10 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	int particles = 300;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
+
+	// Preliminary informations to std out
+	std::cout << "Serial vs Parallel optimization test for " << alg_name_str << std::endl;
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
 	std::cout << "Num bees: " << particles << std::endl;
@@ -300,13 +310,15 @@ int simulation(const typename OptimizerFactory<2>::OptimizerName &algorithm_name
 	double tol = 1e-16;
 	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
 
+	std::string alg_name_str = OptimizerFactory<2>::get_string_name(algorithm_name);
+
 	// Preliminary informations to std out
-	std::cout << "Data for particle simulation" << std::endl;
-	std::cout << "Saving in /output/saspso_simulation.csv" << std::endl;
+	std::cout << "Data for particle simulation for " << alg_name_str << std::endl;
+	std::cout << "Saving in /output/" + alg_name_str + "_simulation.csv" << std::endl;
 
 	// File opening
 	std::ofstream file_out;
-	file_out.open("../output/saspso_simulation.csv");
+	file_out.open("../output/" + alg_name_str + "_simulation.csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;

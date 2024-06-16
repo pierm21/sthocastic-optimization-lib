@@ -46,4 +46,20 @@ public:
 		else
 			throw std::runtime_error("Invalid optimizer name");
 	}
+
+	/**
+	 * @brief Get the string name object
+	 *
+	 * @param name the enum type of the optimizer
+	 * @return std::string the string name of the optimizer
+	 */
+	static const std::string get_string_name(const OptimizerName name)
+	{
+		if(name == OptimizerName::SelfAdaptiveSPSO)
+			return "saspso";
+		else if(name == OptimizerName::ArtificialBeeColony)
+			return "abc";
+		else
+			throw std::runtime_error("Invalid optimizer name");
+	}
 };
