@@ -203,7 +203,6 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	std::vector<double> history_d_p, violation_d_p, feasible_d_p;
 	std::vector<double> dummy;
 
-	//TODO: are pointers necessary? Couldn't we just use the object directly?
 	// Optimize the problems. We need to use a pointer for the specialized class
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol);
 	opt->initialize();

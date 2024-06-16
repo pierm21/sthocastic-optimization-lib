@@ -37,10 +37,10 @@ public:
 	 */
 	static std::unique_ptr<Optimizer<dim>> create(
 		OptimizerName name, Problem<dim>& problem, int size, int iter, double tol=1e-6, double omega_s = 0.9,
-		 double omega_f = 0.4, double phi1_s = 2.5, double phi1_f = 0.3, double phi2_s = 2.5, double phi2_f = 0.3)
+		 double omega_f = 0.4, double phi1_s = 2.5, double phi1_f = 0.3, double phi2_s = 0.3, double phi2_f = 2.5)
 	{
 		if(name == OptimizerName::SelfAdaptiveSPSO)
-			return std::make_unique<SASPSO<dim>>(problem, size, iter, tol);
+			return std::make_unique<SASPSO<dim>>(problem, size, iter, tol, omega_s, omega_f, phi1_s, phi1_f, phi2_s, phi2_f);
 		else if(name == OptimizerName::ArtificialBeeColony)
 			return std::make_unique<ABC<dim>>(problem, size, iter);
 		else
