@@ -112,8 +112,6 @@ public:
 	const RealVector<dim> &get_global_best_position() const override {return global_best_position_;} 
 
 	double get_global_best_constraint_violation() const {return global_best_constraint_violation_;};
-
-	void print_initizalization(std::ostream &out = std::cout) const;
 };
 
 #include "ABC/ABC.cpp"

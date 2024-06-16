@@ -561,17 +561,4 @@ void ABC<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vect
 		}
 }
 
-template <std::size_t dim>
-void ABC<dim>::print_initizalization(std::ostream &out) const
-{
-	int b = 0;
-	for (int j = 0; j < colony_size_; j++)
-	{
-		std::cout << "Bee " << b++ << ": " << std::endl;
-		for (int i = 0; i < dim; i++)
-		{
-			std::cout << colony_[j].get_position()[i] << " " << std::endl;
-		}
-		std::cout << std::endl;
-	}
-}
+
