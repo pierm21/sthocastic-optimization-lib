@@ -15,6 +15,7 @@ class Optimizer
 {
 protected:
 	Problem<dim> problem_;
+	bool log_verbose_;
 
 public:
 	Optimizer() = delete;
@@ -23,9 +24,10 @@ public:
 	 * @brief Construct a new Optimizer object for the given problem.
 	 *
 	 * @param problem the Problem to be optimized
+	 * @param log_verbose a boolean to enable/disable the verbosity for logging purposes
 	 */
-	Optimizer(const Problem<dim> &problem)
-		: problem_(problem) {}
+	Optimizer(const Problem<dim> &problem, bool log_verbose = false)
+		: problem_(problem), log_verbose_(log_verbose) {}
 	virtual ~Optimizer() = default;
 
 	/**
@@ -90,5 +92,12 @@ public:
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
 	virtual const RealVector<dim> &get_global_best_position() const = 0;
+
+	/**
+	 * @brief Set the verbosity for logging purposes
+	 *
+	 * @param log_verbose the verbosity for logging purposes
+	 */
+	void set_log_verbose(bool log_verbose) { log_verbose_ = log_verbose; }
 
 };

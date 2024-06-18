@@ -603,3 +603,28 @@ void ABC<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vect
 	}
 }
 
+template <std::size_t dim>
+void ABC<dim>::custom_reduction(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype)
+{
+	double *in = (double *)invec;
+	double *inout = (double *)inoutvec;
+
+	bool is_better = false;
+	// Apply the feasibility rule to check wheter the invec solution is better than inout
+	if (in[1] == 0 && inout[1] > 0)
+		is_better = true;
+	else if (in[1] > 0 && inout[1] == 0)
+		is_better = false;
+	else if (in[1] == 0 && inout[1] == 0)
+		is_better = in[0] < inout[0];
+	else
+		is_better = in[1] < inout[1];
+
+	if (is_better)
+	{
+		inout[0] = in[0];
+		inout[1] = in[1];
+		for (std::size_t i = 0; i < dim; ++i)
+			inout[i + 2] = in[i + 2];
+	}
+}

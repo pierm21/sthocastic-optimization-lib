@@ -111,6 +111,17 @@ public:
 	const RealVector<dim> &get_global_best_position() const override { return global_best_position_; }
 
 	double get_global_best_constraint_violation() const {return global_best_constraint_violation_;};
+
+	/**
+	 * @brief Custom MPI reduction function implementing the feasibility-based rule for the ABC algorithm
+	 * This function must be used for the MPI_Op_create function to create a custom MPI_Op for the reduction
+	 *
+	 * @param invec a pointer to the first input array (or value) to be reduced
+	 * @param inoutvec a pointer to the second input array (or value) of the reduction and where the output is stored
+	 * @param len the number of elements in the input arrays (or 1 if the input is a single value)
+	 * @param datatype the MPI datatype of the input arrays
+	 */
+	static void custom_reduction(void *invec, void *inoutvec, int *len, MPI_Datatype *datatype);
 };
 
 #include "ABC/ABC.cpp"

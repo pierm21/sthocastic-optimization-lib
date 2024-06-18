@@ -54,13 +54,15 @@ public:
 	 * @param phi1_f the final value of the cognitive parameter
 	 * @param phi2_s the starting value of the social parameter
 	 * @param phi2_f the final value of the social parameter
+	 * @param log_verbose a boolean to enable/disable the verbosity for logging purposes
 	 */
 	SASPSO(const Problem<dim> &problem,
 		   int swarm_size = 100, int max_iter = 2000, double tol = 1e-6,
 		   const double omega_s = 0.9, const double omega_f = 0.4,
 		   const double phi1_s = 2.5, const double phi1_f = 0.3,
-		   const double phi2_s = 0.3, const double phi2_f = 2.5)
-		: Optimizer<dim>(problem),
+		   const double phi2_s = 0.3, const double phi2_f = 2.5,
+		   bool log_verbose = false)
+		: Optimizer<dim>(problem, log_verbose),
 		  swarm_size_(swarm_size), max_iter_(max_iter), tol_(tol),
 		  omega_s_(omega_s), omega_f_(omega_f),
 		  phi1_s_(phi1_s), phi1_f_(phi1_f),
