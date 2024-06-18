@@ -32,6 +32,12 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::G7
 #define problem_name "G7"*/
 
+/**
+ * @brief Optimize the given problem using the specified algorithm and log the results to the output files
+ * Logging is made both for history and simulation data
+ * @param algorithm_name the enum of the algorithm to be used for optimization
+ * @return int 0 if the optimization is successful, -1 otherwise
+ */
 int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
 	constexpr int log_interval = 50;
@@ -39,57 +45,66 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	int iter = 6000;
 	int particles = 20;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
-
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
 	// Preliminary informations to std out
 	std::cout << "Serial optimization for " << alg_name_str << std::endl;
 	std::cout << "Logs in /output/" + alg_name_str + "_optimize.csv" << std::endl;
+	std::cout << "Simulation data in /output/" + alg_name_str + "_simulation.csv" << std::endl;
 
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
 	std::cout << "Num particles: " << particles << std::endl;
 
-	// Initialize history
-	std::vector<double> history, violation, feasible;
-
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
+	opt->set_log_verbose(true);
 
-	std::ofstream file_out;
-	file_out.open("../output/" + alg_name_str + "_optimize.csv");
-	if (!file_out)
+	std::ofstream history_out;
+	history_out.open("../output/" + alg_name_str + "_optimize.csv");
+	if (!history_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
+	std::ofstream simulation_out;
+	simulation_out.open("../output/" + alg_name_str + "_simulation.csv");
+	if (!simulation_out)
 	{
 		std::cout << "Error opening file" << std::endl;
 		return -1;
 	}
 
 	// Write comments and header
-	file_out << "# Fitness, constraints violation and feasible particles over iterations" << std::endl;
-	file_out << "# Dimension: " << dimension << std::endl;
-	file_out << "# Particles: " << particles << std::endl;
-	file_out << "# Problem: " << problem_name << std::endl;
+	history_out << "# Fitness, constraints violation and feasible particles over iterations" << std::endl;
+	history_out << "# Dimension: " << dimension << std::endl;
+	history_out << "# Particles: " << particles << std::endl;
+	history_out << "# Problem: " << problem_name << std::endl;
+	history_out << "iters,value,violation,feasible_particles" << std::endl;
 
-	file_out << "Iters,value,violation,feasible_particles" << std::endl;
+	simulation_out << "# Data of all the particles position at every interval iterations, the best one is flagged" << std::endl;
+	simulation_out << "# Dimension: " << dimension << std::endl;
+	simulation_out << "# Particles: " << particles << std::endl;
+	simulation_out << "# Problem: " << problem_name << std::endl;
+	simulation_out << "iter,";
+	for (int i = 0; i < dimension; i++)
+		simulation_out << "x" << i << ",";
+	simulation_out << "isbest" << std::endl;
 
+	// Optimize the problem storing data to files
 	opt->initialize();
-	opt->optimize(history, violation, feasible, log_interval);
+	opt->optimize(history_out, simulation_out, log_interval);
 
 	// Get the exact global minimum
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
-	// Print the final error
-	std::cout << std::endl
-			  << "Absolute error: " << std::abs(history.back() - exact_value) << std::endl;
+	// Print the final data
+	std::cout << "Absolute error: " << std::abs(opt->get_global_best_value() - exact_value) << std::endl;
+	std::cout << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
 
-	// Store on file
-	for (int i = 0; i < history.size(); i++)
-	{
-		file_out << i * log_interval << ",";
-		file_out << history[i] << ",";
-		file_out << violation[i] << ",";
-		file_out << feasible[i] << std::endl;
-	}
-	file_out.close();
+	// Close file streams
+	history_out.close();
+	simulation_out.close();
+
 	return 0;
 }
 
@@ -144,12 +159,17 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 		std::cout << "Starting test with " << i << " particle(s)" << std::endl;
 		// Optimize the problem serially
 		std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
+		opt->set_log_verbose(false);
+
 		opt->initialize();
 		auto t1 = std::chrono::high_resolution_clock::now();
 		opt->optimize();
 		auto t2 = std::chrono::high_resolution_clock::now();
+
 		// Optimize parallel
 		opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
+		opt->set_log_verbose(false);
+
 		opt->initialize_parallel();
 		auto t3 = std::chrono::high_resolution_clock::now();
 		opt->optimize_parallel();
@@ -163,10 +183,11 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 	}
 	file_out.close();
 	return 0;
+
 }
 
 int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
-{
+{ /*
 	constexpr int log_interval = 10;
 
 	int iter = 2300;
@@ -177,7 +198,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
 	// Preliminary informations to std out
-	std::cout << "Error as function of performed iteration test (for static and adaptive)." << std::endl;
+	std::cout << "Error as function of performed iteration test (for static and adaptive, serial parallel)." << std::endl;
 	std::cout << "Logs in /output/" << alg_name_str << "_static_adaptive.csv every " << log_interval << " iterations." << std::endl;
 
 	std::cout << "Problem: " << problem_name << std::endl;
@@ -185,7 +206,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	std::cout << "Num particles: " << particles << std::endl;
 
 	// Initialize the file
-	std::ofstream file_out;
+	std::ofstream file_out, temp_1;
 	file_out.open("../output/" + alg_name_str + "_static_adaptive.csv");
 	if (!file_out)
 	{
@@ -200,7 +221,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	file_out << "# Tolerance: " << tol << std::endl;
 	file_out << "# Problem: " << problem_name << std::endl;
 
-	file_out << "Iters,static_err,static_viol,static_p_err,static_p_viol,adaptive_err,adaptive_viol,adaptive_p_err,adaptive_p_viol" << std::endl;
+	file_out << "iters,static_err,static_viol,static_p_err,static_p_viol,adaptive_err,adaptive_viol,adaptive_p_err,adaptive_p_viol" << std::endl;
 
 	// Initialize history
 	std::vector<double> history_s, violation_s, feasible_s;
@@ -251,6 +272,7 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 
 	// Close the file
 	file_out.close();
+	*/
 	return 0;
 }
 
@@ -299,49 +321,6 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 	std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
 	std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
-
-	return 0;
-}
-
-int simulation(const typename OptimizerFactory<2>::OptimizerName &algorithm_name)
-{
-	int iter = 100;
-	int particles = 20;
-	double tol = 1e-16;
-	auto problem = TestProblems::create_problem<2>(TestProblems::GOMEZ_LEVY);
-
-	std::string alg_name_str = OptimizerFactory<2>::get_string_name(algorithm_name);
-
-	// Preliminary informations to std out
-	std::cout << "Data for particle simulation for " << alg_name_str << std::endl;
-	std::cout << "Saving in /output/" + alg_name_str + "_simulation.csv" << std::endl;
-
-	// File opening
-	std::ofstream file_out;
-	file_out.open("../output/" + alg_name_str + "_simulation.csv");
-	if (!file_out)
-	{
-		std::cout << "Error opening file" << std::endl;
-		return -1;
-	}
-
-	// Write comments and header
-	file_out << "# Particle simulation data" << std::endl;
-	file_out << "# Problem: GOMEZ_LEVY" << std::endl;
-	file_out << "# Dimension: 2" << std::endl;
-	file_out << "# Particles: " << particles << std::endl;
-	file_out << "# Tolerance: " << tol << std::endl;
-
-	// Dummy vector
-	std::vector<double> dummy;
-
-	// Initialize the solver and optimize the problem storing only the particle simulation
-	std::unique_ptr<Optimizer<2>> opt = OptimizerFactory<2>::create(algorithm_name, problem, particles, iter, tol);
-	opt->initialize();
-	opt->optimize(dummy, dummy, dummy, 1, &file_out);
-
-	// Close the file
-	file_out.close();
 
 	return 0;
 }
@@ -412,14 +391,12 @@ int main(int argc, char **argv)
 			time_numparticles_test(OptimizerFactory<dimension>::SelfAdaptiveSPSO);
 		else if (test == "optimize")
 			optimize(OptimizerFactory<dimension>::SelfAdaptiveSPSO);
-		else if (test == "simulation")
-			simulation(OptimizerFactory<2>::SelfAdaptiveSPSO);
 		else
 		{
 			if(mpi_rank == 0)
 			{
 				std::cout << "Usage: ./test test_name problem_name" << std::endl;
-				std::cout << "Available tests for SASPSO algorithm: optimize, static_adaptive, serial_parallel, time_numparticles, simulation" << std::endl;
+				std::cout << "Available tests for SASPSO algorithm: optimize, static_adaptive, serial_parallel, time_numparticles" << std::endl;
 			}
 		}
 	}

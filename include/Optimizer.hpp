@@ -43,16 +43,13 @@ public:
 	virtual void initialize_parallel() = 0;
 
 	/**
-	 * @brief Optimize the objective function
+	 * @brief Optimize the objective function and print to the given streams the history of the optimization process if log_verbose is true
 	 *
+	 * @param optimum_history the stream to which print the history as: iteration, fitness, constraint_violation, feasible_particles
+	 * @param simulation_history the stream to which print the data to produce a simulation of the optimization process
+	 * @param interval the interval in number of iterations to print the history
 	 */
-	virtual void optimize() = 0;
-
-	/**
-	 * @brief Optimize the objective fufunction and store the results in the given vectors
-	 *
-	 */
-	virtual void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50, std::ostream *out = nullptr) = 0;
+	virtual void optimize(std::ostream& history_out = std::cout, std::ostream& simulation_out = std::cout, const int interval = 50) = 0;
 
 	/**
 	 * @brief Optimize the objective function exploiting parallelism

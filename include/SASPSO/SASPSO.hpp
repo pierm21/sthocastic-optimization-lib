@@ -82,21 +82,13 @@ public:
 	void initialize_parallel() override;
 
 	/**
-	 * @brief Optimize the given problem
-	 */
-	void optimize() override;
-
-	/**
-	 * @brief Optimize the given problem and store the history of the best value and violation found every interval iterations.
-	 * It can also log the time evolution of all the particles to a file, if provided.
+	 * @brief Optimize the objective function and print to the given streams the history of the optimization process if log_verbose is true
 	 *
-	 * @param optimum_history the vector where to store the history of the best value found
-	 * @param violation_history the vector where to store the history of the best contraint violation found
-	 * @param out a pointer to the output stream where to print the time evolution of all the particles (default: nullptr)
-	 * @param interval the sampling interval in number of iterations
-	 * @param feasible_history the vector where to store the history of the number of feasible solutions found
+	 * @param optimum_history the stream to which print the history as: iteration, fitness, constraint_violation, feasible_particles
+	 * @param simulation_history the stream to which print the data to produce a simulation of the optimization process
+	 * @param interval the interval in number of iterations to print the history
 	 */
-	void optimize(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50, std::ostream *out = nullptr) override;
+	void optimize(std::ostream& history_out = std::cout, std::ostream& simulation_out = std::cout, const int interval = 50) override;
 
 	/**
 	 * @brief Optimize the given problem using OMP thread level parallel constructs
