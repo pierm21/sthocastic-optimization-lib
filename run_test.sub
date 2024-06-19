@@ -1,0 +1,61 @@
+#!/bin/bash
+#PBS -S /bin/bash
+
+
+#PBS -l nodes=1:ppn=32,walltime=5:00:00 -q gigatlong
+#PBS -N stochastic
+
+
+# Set the output file and merge it to the sterr
+#PBS -o out-hostname-XyZ-N1x1-qsub.txt
+#PBS -j oe
+#PBS -e out-hostname-XyZ-N1x1.txt
+
+
+source ~/.bashrc
+
+
+# Start the job in the current directory and move to the build one (PBS starts in the home folder)
+cd ${PBS_O_WORKDIR}
+mkdir build
+cd build
+
+
+# Create the machinefile to be passed to mpirun.
+sort ${PBS_NODEFILE} | uniq -c | awk '{ printf("%s\n", $2); }' > mpd.nodes
+
+
+# Create the output directory
+mkdir ../output
+
+
+# Load the needed modules
+module load gcc-glibc/11.2
+module load eigen
+
+
+# Compile
+cmake ..
+make
+
+
+echo "=========================================" >> output_file.txt
+echo "=========================================" >> output_file.txt
+date >> output_file.txt
+echo "=========================================" >> output_file.txt
+
+for alg in SASPSO ABS
+do
+
+	# Run the time_numparticles test for all thread number
+	for threads in 1 2 4 8 12 16 20 24 28 32
+	do
+		export OMP_NUM_THREADS=$threads
+
+  		./test time_numparticles $alg >> output_file.txt 2>&1
+	done
+
+	# Run the optimize (always serial) to produce both history and simulation data
+	./test optimize $alg >> output_file.txt 2>&1
+
+done

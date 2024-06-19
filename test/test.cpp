@@ -60,14 +60,14 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	opt->set_log_verbose(true);
 
 	std::ofstream history_out;
-	history_out.open("../output/" + alg_name_str + "_optimize.csv");
+	history_out.open("../output/optimize_" + alg_name_str + "_" + std::to_string(1) + ".csv");
 	if (!history_out)
 	{
 		std::cout << "Error opening file" << std::endl;
 		return -1;
 	}
 	std::ofstream simulation_out;
-	simulation_out.open("../output/" + alg_name_str + "_simulation.csv");
+	simulation_out.open("../output/simulation_" + alg_name_str + "_" + std::to_string(1) + ".csv");
 	if (!simulation_out)
 	{
 		std::cout << "Error opening file" << std::endl;
@@ -119,14 +119,6 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
-	// Preliminary informations to std out
-	std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
-	std::cout << "Logs in /output/" + alg_name_str + "_time_numparticles.csv" << std::endl;
-
-	std::cout << "Problem: " << problem_name << std::endl;
-	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Log interval: " << log_interval << std::endl;
-
 	// Get the number of omp threads
 	int tot_threads = 0;
 #pragma omp parallel
@@ -135,9 +127,18 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 		tot_threads = omp_get_num_threads();
 	}
 
+	// Preliminary informations to std out
+	std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
+	std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;
+
+	std::cout << "Problem: " << problem_name << std::endl;
+	std::cout << "Max iterations: " << iter << std::endl;
+	std::cout << "Log interval: " << log_interval << std::endl;
+
+
 	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/" + alg_name_str + "_time_numparticles.csv");
+	file_out.open("../output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv");
 	if (!file_out)
 	{
 		std::cout << "Error opening file" << std::endl;
