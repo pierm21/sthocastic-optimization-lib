@@ -91,20 +91,14 @@ public:
 	void optimize(std::ostream& history_out = std::cout, std::ostream& simulation_out = std::cout, const int interval = 50) override;
 
 	/**
-	 * @brief Optimize the given problem using OMP thread level parallel constructs
-	 */
-	void optimize_parallel() override;
-
-	/**
-	 * @brief Optimize the given problem using OMP thread parallelism and store the history of the best value found every interval iterations
+	 * @brief Optimize the objective function in parallel and print to the given streams the history of the optimization process if log_verbose is true
+	 * The parallelism type is multi-threading only due to an heavy syncronization needed.
 	 *
-	 * @param optimum_history the vector where to store the history of the best value found
-	 * @param violation_history the vector where to store the history of the best contraint violation found
-	 * @param feasible_history the vector where to store the history of the number of feasible solutions found
-	 * @param threshold_history the vector where to store the history of the violation thresholds
-	 * @param interval the sampling interval in number of iterations
+	 * @param optimum_history the stream to which print the history as: iteration, fitness, constraint_violation, feasible_particles
+	 * @param simulation_history the stream to which print the data to produce a simulation of the optimization process
+	 * @param interval the interval in number of iterations to print the history
 	 */
-	void optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, const int interval = 50) override;
+	virtual void optimize_parallel(std::ostream& history_out = std::cout, std::ostream& simulation_out = std::cout, const int interval = 50) override;
 
 	/**
 	 * @brief Print the results of the optimization process to the given output stream
