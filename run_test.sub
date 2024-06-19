@@ -44,7 +44,7 @@ echo "=========================================" >> output_file.txt
 date >> output_file.txt
 echo "=========================================" >> output_file.txt
 
-for alg in SASPSO ABS
+for alg in SASPSO ABC
 do
 
 	# Run the time_numparticles test for all thread number

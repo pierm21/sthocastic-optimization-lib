@@ -170,64 +170,7 @@ void SASPSO<dim>::optimize(std::ostream& history_out, std::ostream& simulation_o
 }
 
 template <std::size_t dim>
-void SASPSO<dim>::optimize_parallel()
-{
-	int current_iter = 0;
-
-	// Outer optimization loop over all the iterations. This loop isn't parallelized, the inner loop is
-	// Even if the thread creation is inside the loop, the compiler optimizes it and creates the threads only once (same execution time)
-	while (current_iter < max_iter_)
-	{
-		// Reset the number of feasible particles for the current iteration
-		int feasible_particles = 0;
-
-		// Initialize the threads
-#pragma omp parallel shared(global_best_index_, swarm_)
-		{
-			// Initialize the thread local best index
-			int local_best_index = global_best_index_;
-
-			// Process each particle subdividing them among all threads reducting the number of feasible particles
-#pragma omp for schedule(static) reduction(+ : feasible_particles)
-			for (size_t i = 0; i < swarm_size_; ++i)
-			{
-				//  Update the particle
-				swarm_[i].update(swarm_[global_best_index_].get_best_position(), violation_threshold_, current_iter, max_iter_, tol_);
-				// Check if the particle is feasible
-				if (swarm_[i].get_best_constraint_violation() <= violation_threshold_)
-					feasible_particles++;
-			}
-
-			// Update the violation threshold according to the proportion of feasible particles
-#pragma omp single
-			{
-				violation_threshold_ = violation_threshold_ * (1.0 - (feasible_particles / (double)swarm_size_));
-				violation_threshold_ = violation_threshold_ < tol_ ? 0 : violation_threshold_;
-			}
-
-			// Update local best position
-#pragma omp for nowait schedule(static)
-			for (size_t i = 0; i < swarm_size_; ++i)
-			{
-				if (swarm_[i].is_better_than(swarm_[local_best_index], violation_threshold_, tol_))
-					local_best_index = i;
-			}
-
-			// Each thread updates the global best index if it has a better solution
-#pragma omp critical(update_global_best_opt)
-			{
-				if (swarm_[local_best_index].is_better_than(swarm_[global_best_index_], violation_threshold_, tol_))
-					global_best_index_ = local_best_index;
-			}
-		}
-
-		// Update the current iteration
-		current_iter++;
-	}
-}
-
-template <std::size_t dim>
-void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::vector<double> &violation_history, std::vector<double> &feasible_history, /*std::vector<double> &threshold_history,*/ const int interval)
+void SASPSO<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simulation_out, const int interval)
 {
 	int current_iter = 0;
 	std::cout << "iter" << " | " << "global best" << " | " << "global violation" << " | " << "feasible particles" << " | " << "violation threshold" << " | " << "global best index" << std::endl;
@@ -278,15 +221,25 @@ void SASPSO<dim>::optimize_parallel(std::vector<double> &optimum_history, std::v
 					global_best_index_ = local_best_index;
 			} // implicit barrier
 		}
-		// Store current global best value and violation in history
-		if (current_iter % interval == 0)
-		{
-			optimum_history.push_back(swarm_[global_best_index_].get_best_value());
-			violation_history.push_back(swarm_[global_best_index_].get_best_constraint_violation());
-			feasible_history.push_back(feasible_particles);
-			// threshold_history.push_back(violation_threshold_);
 
-			std::cout << std::setprecision(20) << current_iter << " | " << swarm_[global_best_index_].get_best_value() << " | " << swarm_[global_best_index_].get_best_constraint_violation() << " | " << feasible_particles << " | " << violation_threshold_ << " | " << global_best_index_ << std::endl;
+		// Log the optimization process in both history and simulation streams.
+		// NB: Branch prediction will optimize well the following branch since it has a constant condition
+		if (Optimizer<dim>::log_verbose_ && current_iter % interval == 0)
+		{
+			// Print Iters,value,violation,threshold,feasible_particles to the history
+			history_out << current_iter << ","
+						<< swarm_[global_best_index_].get_best_value() << ","
+						<< swarm_[global_best_index_].get_best_constraint_violation() << ","
+						<< violation_threshold_ << ","
+						<< feasible_particles <<  std::endl;
+			// Print all the particles position and flag the best one to the simulation stream
+			for (int i = 0; i < swarm_size_; i++)
+			{
+				simulation_out << current_iter << ",";
+				for (int d = 0; d < dim; d++)
+					simulation_out << swarm_[i].get_best_position()[d] << ",";
+				simulation_out << ((i == global_best_index_) ? 1 : 0) << std::endl;
+			}
 		}
 
 		// Update the current iteration
