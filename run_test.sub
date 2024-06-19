@@ -30,7 +30,7 @@ mkdir ../output
 
 
 # Load the needed modules
-module load gcc-glibc/11.2
+module load gcc-glibc/11.2.0
 module load eigen
 
 
