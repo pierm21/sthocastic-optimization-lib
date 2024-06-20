@@ -264,43 +264,61 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	int particles = 300;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	int mpi_rank = 0;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
-	// Preliminary informations to std out
-	std::cout << "Serial vs Parallel optimization test for " << alg_name_str << std::endl;
-	std::cout << "Problem: " << problem_name << std::endl;
-	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Num bees: " << particles << std::endl;
-
-	// Test the serial version
-	std::cout << std::endl;
-	std::cout << "--- Serial optimizer testing ---" << std::endl;
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
-	auto t1 = std::chrono::high_resolution_clock::now();
-	opt->initialize();
-	opt->optimize();
-	auto t2 = std::chrono::high_resolution_clock::now();
-	opt->print_results();
+	double time_serial = 0.0;
+	// Preliminary informations and serial optimization
+	if (mpi_rank == 0)
+	{
+		std::cout << "Serial vs Parallel optimization test for " << alg_name_str << std::endl;
+		std::cout << "Problem: " << problem_name << std::endl;
+		std::cout << "Max iterations: " << iter << std::endl;
+		std::cout << "Num particles: " << particles << std::endl;
 
-	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
-	double time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-	std::cout << std::setprecision(20) << "Elapsed initialization + optimization time: " << time_serial << std::endl;
+		// Test the serial version
+		std::cout << std::endl;
+		std::cout << "--- Serial optimizer testing ---" << std::endl;
+
+		auto t1 = std::chrono::high_resolution_clock::now();
+		opt->initialize();
+		opt->optimize();
+		auto t2 = std::chrono::high_resolution_clock::now();
+		opt->print_results();
+
+		std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
+		std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
+		time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+		std::cout << std::setprecision(20) << "Elapsed initialization + optimization time: " << time_serial << std::endl;
+	}
+	std::chrono::time_point<std::chrono::system_clock> t1, t2;
 
 	// Test the parallel version
-	std::cout << std::endl;
-	std::cout << "--- Parallel optimizer testing ---" << std::endl;
+	if (mpi_rank == 0)
+	{
+		std::cout << std::endl;
+		std::cout << "--- Parallel optimizer testing ---" << std::endl;
+	}
 	std::unique_ptr<Optimizer<dimension>> opt_p = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
-	t1 = std::chrono::high_resolution_clock::now();
+	if(mpi_rank == 0)
+	{
+		t1 = std::chrono::high_resolution_clock::now();
+	}
 	opt->initialize_parallel();
 	opt->optimize_parallel();
-	t2 = std::chrono::high_resolution_clock::now();
-	opt->print_results();
-	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
-	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-	std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
-	std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
+	if(mpi_rank == 0)
+	{
+		t2 = std::chrono::high_resolution_clock::now();
+		opt->print_results();
+		std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
+		std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
+		double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+		std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
+		std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
+	}
 
 	return 0;
 }
