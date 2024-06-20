@@ -342,8 +342,6 @@ void ABC<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simula
 				}
 			}
 
-			//TODO SALVARE SULLA HISTORY
-
 			// Update the current iteration
 			current_iter++;
 		}

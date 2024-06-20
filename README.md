@@ -59,11 +59,11 @@ NB: Eigen 3.3 can be loaded using [mk modules](https://github.com/pcafrica/mk) o
    ```
    cmake --build .
    ```
-5. Launch the test executable for the preferred algorithm. A suitable test name must be provided (a complete list of the available test is shown if no parameter is provided)
+5. Launch the test executable. Suitable test name and algorithm name must be provided (a complete list of the available test is shown if no parameter is provided)
    ```
-   ./test-algorithm [test_name]
+   ./test [test_name] [algorithm_name]
    ```
-   The execution of a test may produce an output file `algorithm_test_name.csv` that can be found under the `output` folder.
+   The execution of a test may produce an output file `test_name_algorithm_name_num_threads.csv` that can be found under the `output` folder.
 6. Plot the results in a graphical way using the `csv_ploter.py` script passing as argument only the filename of the .csv file stored in the the `output` folder.
    ```
    cd ../scripts
