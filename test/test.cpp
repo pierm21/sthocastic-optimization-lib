@@ -11,18 +11,18 @@
 using namespace type_traits;
 namespace fs = std::filesystem;
 
-/*#define dimension 2
+#define dimension 2
 #define test_problem TestProblems::GOMEZ_LEVY
 #define problem_name "GOMEZ_LEVY"
-*/
+
 
 /*#define dimension 2
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSEND"*/
-
+/*
 #define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"
+#define problem_name "G10"*/
 
 /*#define dimension 30
 #define test_problem TestProblems::GRIEWANK
@@ -40,10 +40,10 @@ namespace fs = std::filesystem;
  */
 int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
-	constexpr int log_interval = 50;
+	constexpr int log_interval = 1;
 
-	int iter = 6000;
-	int particles = 20;
+	int iter = 100;
+	int particles = 40;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
@@ -188,7 +188,7 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 }
 
 int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
-{ /*
+{
 	constexpr int log_interval = 10;
 
 	int iter = 2300;
@@ -214,6 +214,12 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 		std::cout << "Error opening file" << std::endl;
 		return -1;
 	}
+	temp_1.open("../output/" + alg_name_str + "temp.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
 
 	// Write comments and header
 	file_out << "# Error and constraints violation over iterations (static vs adaptive)" << std::endl;
@@ -224,56 +230,29 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 
 	file_out << "iters,static_err,static_viol,static_p_err,static_p_viol,adaptive_err,adaptive_viol,adaptive_p_err,adaptive_p_viol" << std::endl;
 
-	// Initialize history
-	std::vector<double> history_s, violation_s, feasible_s;
-	std::vector<double> history_d, violation_d, feasible_d;
-	std::vector<double> history_s_p, violation_s_p, feasible_s_p;
-	std::vector<double> history_d_p, violation_d_p, feasible_d_p;
-	std::vector<double> dummy;
-
 	// Optimize the problems. We need to use a pointer for the specialized class
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol);
 	opt->initialize();
-	opt->optimize(history_d, violation_d, feasible_d, log_interval);
+	opt->optimize(file_out, temp_1, log_interval);
 
 	opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol);
 	opt->initialize_parallel();
-	opt->optimize_parallel(history_d_p, violation_d_p, feasible_d_p, log_interval);
+	opt->optimize_parallel(file_out, temp_1, log_interval);
 
 	std::unique_ptr<Optimizer<dimension>> opt1 = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
 	opt1->initialize();
-	opt1->optimize(history_s, violation_s, feasible_s, log_interval);
+	opt1->optimize(file_out, temp_1, log_interval);
 
 	opt1 = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
 	opt1->initialize_parallel();
-	opt1->optimize_parallel(history_s_p, violation_s_p, feasible_s_p, log_interval);
-
-	// Print the history vectors size
-	std::cout << "Adaptive history size: " << history_d.size() << std::endl;
-	std::cout << "Adaptive parallel history size: " << history_d_p.size() << std::endl;
-	std::cout << "Static history size: " << history_s.size() << std::endl;
-	std::cout << "Static parallel history size: " << history_s_p.size() << std::endl;
+	opt1->optimize_parallel(file_out, temp_1, log_interval);
 
 	// Get the exact global minimum
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
-	// Write to file the error values
-	for (int i = 0; i < history_s.size(); i++)
-	{
-		file_out << i * log_interval << ",";
-		file_out << std::abs(history_s[i] - exact_value) << ",";
-		file_out << violation_s[i] << ",";
-		file_out << std::abs(history_s_p[i] - exact_value) << ",";
-		file_out << violation_s_p[i] << ",";
-		file_out << std::abs(history_d[i] - exact_value) << ",";
-		file_out << violation_d[i] << ",";
-		file_out << std::abs(history_d_p[i] - exact_value) << ",";
-		file_out << violation_d_p[i] << std::endl;
-	}
-
 	// Close the file
 	file_out.close();
-	*/
+	temp_1.close();
 	return 0;
 }
 

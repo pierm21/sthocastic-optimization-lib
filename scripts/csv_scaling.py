@@ -71,7 +71,7 @@ if "strongsingle" in sys.argv[1]:
 	# Solve time as a function of the number of processes all in one plot for a single n_dof
 	for time_type in ("Parallel_time",):
 		for opt in opt_types:
-			fig, ax = plt.subplots()
+			fig, ax = plt.subplots(figsize=(12, 8))
 			df = df_tnp[opt]
 			# Sort the data by the number of processes
 			df = df.sort_values(by='threads')
@@ -85,11 +85,10 @@ if "strongsingle" in sys.argv[1]:
 			#Plot ideal scaling
 			proc = df['threads']
 			solve = df[time_type]
-			ax.plot(proc, 1e3 / proc, label="Ideal scaling", linestyle='--', color='black')
-			ax.plot(proc, 1e2 / proc, linestyle='--', color='black')
-			ax.plot(proc, 1 / proc, linestyle='--', color='black')
+			ax.plot(proc, 1e4 / proc, label="Ideal scaling", linestyle='--', color='black')
+			ax.plot(proc, 1e3 / proc, linestyle='--', color='black')
 			ax.set_xlabel("Number of threads")
-			ax.set_ylabel(time_type + " time (s)")
+			ax.set_ylabel(time_type + " time (ms)")
 			ax.set_yscale('log')
 			ax.set_xscale('log')
 			ax.grid(True, which="both", ls="--")
@@ -99,3 +98,36 @@ if "strongsingle" in sys.argv[1]:
 			ax.legend(loc="upper right", fontsize='small', fancybox=True, framealpha=0.5)
 			plt.savefig(path.join(savepath, "strong_" + opt + "_" + time_type + ".png"))
 			print("Strong scaling plot saved in", path.join(savepath, "strong_" + opt + "_" + time_type + ".png"))
+
+# ====== Plot for parallel speedup ======
+if "speedup" in sys.argv[1]:
+	print("Plotting parallel speedup for all solvers")
+	for time_type in ("Parallel_time",):
+		fig, ax = plt.subplots()
+		for opt in opt_types:
+			df = df_tnp[opt]
+			# Sort the data by the number of processes
+			df = df.sort_values(by='threads')
+			df
+			# Get the largest two values of n_dofs and plot them
+			for dof_value in df['Num_particles'].drop_duplicates().nlargest(2).tolist():
+				df1 = df[df['Num_particles'] == dof_value]
+				# Compose the label
+				lab = opt + " (" + str(dof_value) + "particles)"
+				speedup = df['threads'].min() * df1[time_type].max() / df1[time_type]
+				ax.plot(df1['threads'], speedup, label=lab, marker=marks[opt], linestyle='-.', linewidth=2.5, markersize=8)
+
+		# Plot the ideal speedup
+		proc = df['threads']
+		ax.plot(proc, proc, label="Ideal speedup", linestyle='--', color='black')
+		ax.set_xlabel("Number of threads")
+		ax.set_ylabel("Speedup")
+		ax.set_xscale('log')
+		ax.set_yscale('log')
+		ax.grid(True, which="both", ls="--")
+		ax.set_xticks(df['threads'].unique())
+		ax.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+		ax.set_title("Parallel speedup for all the solvers")
+		ax.legend(loc="upper left", fontsize='small', fancybox=True, framealpha=0.5)
+		plt.savefig(os.path.join(savepath, "speedup.png"))
+		print("Parallel speedup plot saved in", os.path.join(savepath, "speedup.png"))

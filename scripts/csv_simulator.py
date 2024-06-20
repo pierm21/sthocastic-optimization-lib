@@ -36,10 +36,10 @@ def ff(x, y):
     return ret
 f = np.vectorize(ff)
 
-x_min = -1.
-x_max = 0.75
-y_min = -1.
-y_max = 1.
+x_min = -3.
+x_max = 3.
+y_min = -3.
+y_max = 3.
 x_best = 0.089842015605160238656
 y_best = -0.71265640151135767333
 best = f(x_best, y_best)
@@ -59,14 +59,14 @@ def animate(i):
     best_point = iter_data[iter_data['isbest'] == True]
 
     # Plot contour
-    contour = ax.contourf(x_mesh, y_mesh, z_mesh, levels=np.linspace(best-20, best+20, 30), cmap='viridis', alpha=0.6)
+    contour = ax.contourf(x_mesh, y_mesh, z_mesh, levels=np.linspace(best-0.2, f(x_min,y_min), 1000), cmap='viridis', alpha=0.6)
     # Plot best point
     ax.scatter(x_best, y_best, c='red', marker='+', label='Real optimium')
 
     ax.scatter(iter_data['x0'], iter_data['x1'], c='blue', label='Points')
     ax.scatter(best_point['x0'], best_point['x1'], c='red', label='Best Point')
 
-    ax.set_title(f'Iteration {iter_num}')
+    ax.set_title(f'Particle behaviour ABC, iter {iter_num}')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
 
@@ -74,7 +74,6 @@ def animate(i):
     ax.set_ylim(y_min, y_max)
 
     ax.legend()
-    ax.title("Particles behaviour")
 
 
 # Create animation

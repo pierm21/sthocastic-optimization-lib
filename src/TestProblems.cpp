@@ -44,8 +44,8 @@ Problem<2> TestProblems::create_problem(ProblemName p)
 			return ret;
 		};
 
-		RealVector<2> lb(-1, -1);
-		RealVector<2> ub(1, 1);
+		RealVector<2> lb(-4, -4);
+		RealVector<2> ub(4, 4);
 
 		Problem<2> problem(f, lb, ub);
 

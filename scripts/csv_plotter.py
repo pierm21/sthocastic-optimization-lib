@@ -19,13 +19,13 @@ if len(sys.argv) < 2:
 # Find the path of CSV file
 basepath = path.dirname(__file__)
 filepath = path.abspath(path.join(basepath, "..", "output", sys.argv[1]))
-savepath = path.abspath(path.join(basepath, "..", "plots", sys.argv[1]))
+savepath = path.abspath(path.join(basepath, "..", "plots"))
 
 # Read the CSV file using pandas
 data = pd.read_csv(filepath, comment='#', index_col=0)
 
 # Set the font size
-sns.set_theme(font_scale = 1.3)
+sns.set_theme(font_scale=1.3)
 
 # Compose the title from the comments
 title = ""
@@ -43,7 +43,7 @@ ax = None
 
 
 # ====== Plot for the saspso_static_adaptive.csv ======
-if sys.argv[1] == "saspso_static_adaptive.csv":
+if sys.argv[1] == "static_adaptive_saspso_1.csv":
 	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
 
 	# error plot
@@ -68,7 +68,7 @@ if sys.argv[1] == "saspso_static_adaptive.csv":
 
 
 # ====== Plot for the saspso_time_numparticles.csv ======
-elif sys.argv[1] == "saspso_time_numparticles.csv":
+elif sys.argv[1] == "time_numparticles_saspso_8.csv":
 	plt.figure(figsize=(12, 10))
 	ax = sns.lineplot(data=data.Serial_time, color='blue', linewidth=3)
 	sns.lineplot(data=data.Parallel_time, color='red', ax=ax, linewidth=3)
@@ -84,7 +84,7 @@ elif sys.argv[1] == "saspso_time_numparticles.csv":
 
 
 # ====== Plot for the saspso_optimize.csv ======
-elif sys.argv[1] == "saspso_optimize.csv":
+elif sys.argv[1] == "optimize_saspso_1.csv":
 	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
 
 	# value plot
@@ -121,41 +121,42 @@ elif sys.argv[1] == "saspso_optimize.csv":
 
 
 # ====== Plot for the abc_optimize.csv ======
-elif sys.argv[1] == "abc_optimize.csv":
-    fig, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 10))
+elif sys.argv[1] == "optimize_abc_1.csv":
+	fig, axes = plt.subplots(2, 1, sharex=True, figsize=(14, 10))
+	print(data.info())
 
-    # Value plot
-    ax = sns.lineplot(ax=axes[0], data=data[['value']], linewidth=3, legend=True)
-    ax.set_yscale('linear')
-    ax.set_ylabel("Value", fontsize=16)
-    ax.set_xlabel("Iterations", fontsize=16)
-    ax.axhline(y=8150)
+	# Value plot
+	ax = sns.lineplot(ax=axes[0], data=data[['value']], linewidth=3, legend=True)
+	ax.set_yscale('linear')
+	ax.set_ylabel("Value", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.axhline(y=7349)
 
-    # Constraint violation plot
-    ax = sns.lineplot(ax=axes[1], data=data[['violation']], linewidth=3, legend=False)
-    ax.set_ylabel("Constraint Violation", fontsize=16)
-    ax.set_xlabel("Iterations", fontsize=16)
-    ax.set_yscale('symlog', linthresh=1e-3)
-    ax.set_ylim(bottom=-1e-3, top=10)
-    ax.set_xlim(left=-100, right=6000)
+	# Constraint violation plot
+	ax = sns.lineplot(ax=axes[1], data=data[['violation']], linewidth=3, legend=False)
+	ax.set_ylabel("Constraint Violation", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.set_yscale('symlog', linthresh=1e-3)
+	ax.set_ylim(bottom=-1e-3, top=10)
+	ax.set_xlim(left=-100, right=6000)
 
-    # Feasible particles plot as twin of the constraint violation plot
-    ax = sns.lineplot(ax=axes[1].twinx(), data=data[['feasible_particles']], linewidth=3, palette=['g',], legend=False)
-    ax.set_ylabel("Feasible Particles", fontsize=16)
-    ax.set_xlabel("Iterations", fontsize=16)
-    ax.set_yscale('symlog', linthresh=50)
+	# Feasible particles plot as twin of the constraint violation plot
+	ax = sns.lineplot(ax=axes[1].twinx(), data=data[['feasible_particles']], linewidth=3, palette=['g',], legend=False)
+	ax.set_ylabel("Feasible Particles", fontsize=16)
+	ax.set_xlabel("Iterations", fontsize=16)
+	ax.set_yscale('symlog', linthresh=50)
 
-    ax.legend(handles=[Line2D([], [], marker='_', color='blue', label='Total Violation'),
-                       Line2D([], [], marker='_', color='green',  label='Feasible Particles')],
-                       fontsize=14,
-                       loc='upper center')
+	ax.legend(handles=[Line2D([], [], marker='_', color='blue', label='Total Violation'),
+					   Line2D([], [], marker='_', color='green',  label='Feasible Particles')],
+					   fontsize=14,
+					   loc='upper center')
 
-    # Set axis where to put the title
-    ax = axes[0]
+	# Set axis where to put the title
+	ax = axes[0]
 
 
 # ====== Plot for the abc_time_numparticles.csv ======
-elif sys.argv[1] == "abc_time_numparticles.csv":
+elif sys.argv[1] == "time_numparticles_abc_8.csv":
 	plt.figure(figsize=(12, 10))
 	ax = sns.lineplot(data=data.Serial_time, color='blue', linewidth=3)
 	sns.lineplot(data=data.Parallel_time, color='red', ax=ax, linewidth=3)
@@ -182,4 +183,4 @@ ax.text(x=0.5, y=1.05, s=description, fontsize=14, alpha=0.75, ha='center', va='
 
 
 # Save the plot in the output directory
-plt.savefig(os.path.join(os.getcwd(), "..", "output", sys.argv[1][:-4] + ".png"))
+plt.savefig(os.path.join(savepath, sys.argv[1][:-4] + ".png"))
