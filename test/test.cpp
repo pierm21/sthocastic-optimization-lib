@@ -10,8 +10,8 @@
 
 using namespace type_traits;
 namespace fs = std::filesystem;
-
-/*#define dimension 2
+/*
+#define dimension 2
 #define test_problem TestProblems::GOMEZ_LEVY
 #define problem_name "GOMEZ_LEVY"
 */
@@ -40,10 +40,10 @@ namespace fs = std::filesystem;
  */
 int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
-	constexpr int log_interval = 50;
+	constexpr int log_interval = 1;
 
-	int iter = 6000;
-	int particles = 20;
+	int iter = 100;
+	int particles = 40;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
@@ -121,6 +121,11 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
+	int mpi_rank = 0;
+	int mpi_size = 1;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
 	// Get the number of omp threads
 	int tot_threads = 0;
 #pragma omp parallel
@@ -128,69 +133,79 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 #pragma omp single
 		tot_threads = omp_get_num_threads();
 	}
+	tot_threads *= mpi_size;
 
-	// Preliminary informations to std out
-	std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
-	std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;
-
-	std::cout << "Problem: " << problem_name << std::endl;
-	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Log multiplier: " << log_multiplier << std::endl;
-
-
-	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv");
-	if (!file_out)
+	if (mpi_rank == 0)
 	{
-		std::cout << "Error opening file" << std::endl;
-		return -1;
+		// Preliminary informations to std out
+		std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
+		std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;
+
+		std::cout << "Problem: " << problem_name << std::endl;
+		std::cout << "Max iterations: " << iter << std::endl;
+		std::cout << "Log multiplier: " << log_multiplier << std::endl;
+
+		// Initialize the file
+		file_out.open("../output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv");
+		if (!file_out)
+		{
+			std::cout << "Error opening file" << std::endl;
+		}
+		// Write comments and header to file
+		file_out << "# Execution time as function of the colony size" << std::endl;
+		file_out << "# Problem: " << problem_name << std::endl;
+		file_out << "# Dimension: " << dimension << std::endl;
+		file_out << "# Threads: " << tot_threads << std::endl;
+		file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
+
+		std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
+		std::cout << "Logging every x" << log_multiplier << " iterations" << std::endl;
 	}
-	// Write comments and header to file
-	file_out << "# Execution time as function of the colony size" << std::endl;
-	file_out << "# Problem: " << problem_name << std::endl;
-	file_out << "# Dimension: " << dimension << std::endl;
-	file_out << "# Threads: " << tot_threads << std::endl;
-	file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
-
-	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
-	std::cout << "Logging every x" << log_multiplier << " iterations" << std::endl;
-
 	for (int i = init_particles; i <= max_particles; i *= log_multiplier)
 	{
-		// Print progress to stdout
-		std::cout << "Starting test with " << i << " particle(s)" << std::endl;
-		// Optimize the problem serially
+		std::chrono::time_point<std::chrono::system_clock> t1, t2, t3, t4;
+		if (mpi_rank == 0)
+		{
+			// Print progress to stdout
+			std::cout << "Starting test with " << i << " particle(s)" << std::endl;
+			// Optimize the problem serially
+			std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
+			opt->set_log_verbose(false);
+
+			opt->initialize();
+			t1 = std::chrono::high_resolution_clock::now();
+			opt->optimize();
+			t2 = std::chrono::high_resolution_clock::now();
+		}
+		// Optimize parallel
 		std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
 		opt->set_log_verbose(false);
 
-		opt->initialize();
-		auto t1 = std::chrono::high_resolution_clock::now();
-		opt->optimize();
-		auto t2 = std::chrono::high_resolution_clock::now();
-
-		// Optimize parallel
-		opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
-		opt->set_log_verbose(false);
-
 		opt->initialize_parallel();
-		auto t3 = std::chrono::high_resolution_clock::now();
+		t3 = std::chrono::high_resolution_clock::now();
 		opt->optimize_parallel();
-		auto t4 = std::chrono::high_resolution_clock::now();
-
-		// Write data to file
-		file_out << i << ",";
-		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
-		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
-		file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+		t4 = std::chrono::high_resolution_clock::now();
+		if (mpi_rank == 0)
+		{
+			// Write data to file
+			file_out << i << ",";
+			file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
+			file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
+			file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+		}
 	}
-	file_out.close();
-	return 0;
+	if (mpi_rank == 0)
+	{
+		// Close the file
+		file_out.close();
+	}
 
+	return 0;
 }
 
 int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
-{ /*
+{
 	constexpr int log_interval = 10;
 
 	int iter = 2300;
@@ -216,6 +231,12 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 		std::cout << "Error opening file" << std::endl;
 		return -1;
 	}
+	temp_1.open("../output/" + alg_name_str + "temp.csv");
+	if (!file_out)
+	{
+		std::cout << "Error opening file" << std::endl;
+		return -1;
+	}
 
 	// Write comments and header
 	file_out << "# Error and constraints violation over iterations (static vs adaptive)" << std::endl;
@@ -226,56 +247,29 @@ int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerNa
 
 	file_out << "iters,static_err,static_viol,static_p_err,static_p_viol,adaptive_err,adaptive_viol,adaptive_p_err,adaptive_p_viol" << std::endl;
 
-	// Initialize history
-	std::vector<double> history_s, violation_s, feasible_s;
-	std::vector<double> history_d, violation_d, feasible_d;
-	std::vector<double> history_s_p, violation_s_p, feasible_s_p;
-	std::vector<double> history_d_p, violation_d_p, feasible_d_p;
-	std::vector<double> dummy;
-
 	// Optimize the problems. We need to use a pointer for the specialized class
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol);
 	opt->initialize();
-	opt->optimize(history_d, violation_d, feasible_d, log_interval);
+	opt->optimize(file_out, temp_1, log_interval);
 
 	opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol);
 	opt->initialize_parallel();
-	opt->optimize_parallel(history_d_p, violation_d_p, feasible_d_p, log_interval);
+	opt->optimize_parallel(file_out, temp_1, log_interval);
 
 	std::unique_ptr<Optimizer<dimension>> opt1 = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
 	opt1->initialize();
-	opt1->optimize(history_s, violation_s, feasible_s, log_interval);
+	opt1->optimize(file_out, temp_1, log_interval);
 
 	opt1 = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter, tol, 0.9, 0.9, 1.2, 1.2, 0.3, 0.3);
 	opt1->initialize_parallel();
-	opt1->optimize_parallel(history_s_p, violation_s_p, feasible_s_p, log_interval);
-
-	// Print the history vectors size
-	std::cout << "Adaptive history size: " << history_d.size() << std::endl;
-	std::cout << "Adaptive parallel history size: " << history_d_p.size() << std::endl;
-	std::cout << "Static history size: " << history_s.size() << std::endl;
-	std::cout << "Static parallel history size: " << history_s_p.size() << std::endl;
+	opt1->optimize_parallel(file_out, temp_1, log_interval);
 
 	// Get the exact global minimum
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
-	// Write to file the error values
-	for (int i = 0; i < history_s.size(); i++)
-	{
-		file_out << i * log_interval << ",";
-		file_out << std::abs(history_s[i] - exact_value) << ",";
-		file_out << violation_s[i] << ",";
-		file_out << std::abs(history_s_p[i] - exact_value) << ",";
-		file_out << violation_s_p[i] << ",";
-		file_out << std::abs(history_d[i] - exact_value) << ",";
-		file_out << violation_d[i] << ",";
-		file_out << std::abs(history_d_p[i] - exact_value) << ",";
-		file_out << violation_d_p[i] << std::endl;
-	}
-
 	// Close the file
 	file_out.close();
-	*/
+	temp_1.close();
 	return 0;
 }
 
@@ -287,37 +281,54 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	int particles = 300;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
+	int mpi_rank = 0;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
-	// Preliminary informations to std out
-	std::cout << "Serial vs Parallel optimization test for " << alg_name_str << std::endl;
-	std::cout << "Problem: " << problem_name << std::endl;
-	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Num bees: " << particles << std::endl;
-
-	// Test the serial version
-	std::cout << std::endl;
-	std::cout << "--- Serial optimizer testing ---" << std::endl;
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
-	auto t1 = std::chrono::high_resolution_clock::now();
-	opt->initialize();
-	opt->optimize();
-	auto t2 = std::chrono::high_resolution_clock::now();
-	opt->print_results();
+	double time_serial = 0.0;
+	// Preliminary informations and serial optimization
+	if (mpi_rank == 0)
+	{
+		std::cout << "Serial vs Parallel optimization test for " << alg_name_str << std::endl;
+		std::cout << "Problem: " << problem_name << std::endl;
+		std::cout << "Max iterations: " << iter << std::endl;
+		std::cout << "Num particles: " << particles << std::endl;
 
-	std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
-	double time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-	std::cout << std::setprecision(20) << "Elapsed initialization + optimization time: " << time_serial << std::endl;
+		// Test the serial version
+		std::cout << std::endl;
+		std::cout << "--- Serial optimizer testing ---" << std::endl;
+
+		auto t1 = std::chrono::high_resolution_clock::now();
+		opt->initialize();
+		opt->optimize();
+		auto t2 = std::chrono::high_resolution_clock::now();
+		opt->print_results();
+
+
+		std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
+		std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
+		std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
+		time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+		std::cout << std::setprecision(20) << "Elapsed initialization + optimization time: " << time_serial << std::endl;
+	}
+	std::chrono::time_point<std::chrono::system_clock> t1, t2;
 
 	// Test the parallel version
-	std::cout << std::endl;
-	std::cout << "--- Parallel optimizer testing ---" << std::endl;
+	if (mpi_rank == 0)
+	{
+		std::cout << std::endl;
+		std::cout << "--- Parallel optimizer testing ---" << std::endl;
+	}
 	std::unique_ptr<Optimizer<dimension>> opt_p = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
-	t1 = std::chrono::high_resolution_clock::now();
+	if(mpi_rank == 0)
+	{
+		t1 = std::chrono::high_resolution_clock::now();
+	}
 	opt->initialize_parallel();
 	opt->optimize_parallel();
+<<<<<<< HEAD
 	t2 = std::chrono::high_resolution_clock::now();
 	opt->print_results();
 	
@@ -327,6 +338,18 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
 	std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
 	std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
+=======
+	if(mpi_rank == 0)
+	{
+		t2 = std::chrono::high_resolution_clock::now();
+		opt->print_results();
+		std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
+		std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
+		double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+		std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
+		std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
+	}
+>>>>>>> alberto
 
 	return 0;
 }
