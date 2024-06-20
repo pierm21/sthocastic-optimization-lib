@@ -20,33 +20,26 @@ void Bee<dim>::initialize()
     cost_value_ = this->problem_->get_fitness_function()(this->position_);
     // Initialize the constraint violation
     constraint_violation_ = compute_constraint_violation(this->position_);
-
-    /*std::cout<<"Bee: "<< this->index_in_colony_<<std::endl;
-    std::cout<<"Position:   ";
-    for (int i = 0; i < dim; i++)
-    {
-        std::cout<<this->position_[i]<<" ";
-    }
-    std::cout<<std::endl;
-    std::cout<<"Value: "<<cost_value_<<std::endl;
-    std::cout<<"Violation: "<<constraint_violation_<<std::endl;*/
-
 }
 
 template <size_t dim>
 void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& colony_)
 {
     int change_occurred = 0;
+    // index reffering to a chosen random neighbour different from the actual bee
     size_t neighbour_index = -1;
     std::uniform_real_distribution<double> distr(0, 1.0);
     std::uniform_real_distribution<double> distr2(-1.0, 1.0);
     std::uniform_int_distribution<int> distr3(0, colony_.size() - 1);
+    // new position of the bee after the update
     RealVector<dim> new_position;
 
+    // Update the position of the bee one dimension at a time
     for (int i = 0; i < dim; ++i)
     {
         // Generate a random number in the range [0, 1]
         double r = distr(*this->random_generator_);
+        // Update the i-th dimension position's value with probability MR
         if (r < MR)
         {
             change_occurred = 1;
@@ -58,7 +51,10 @@ void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& col
                 neighbour_index = distr3(*this->random_generator_);
             } while (neighbour_index == index_in_colony_);
 
+            // new position value of the i-th dimension
             double new_parameter = this->position_[i] + phi * (this->position_[i] - colony_[neighbour_index].get_position()[i]);
+
+            // Update the i-th dimension position's value if it is within the bounds, otherwise set it to the bound
             if (new_parameter < this->problem_->get_lower_bound(i))
                 new_position[i] = this->problem_->get_lower_bound(i);
             else if (new_parameter > this->problem_->get_upper_bound(i))

@@ -250,24 +250,12 @@ void SASPSO<dim>::optimize_parallel(std::ostream& history_out, std::ostream& sim
 template <std::size_t dim>
 void SASPSO<dim>::print_results(std::ostream &out) const
 {
-	out << std::setprecision(20) << "Best value: " << swarm_[global_best_index_].get_best_value() << std::endl;
-	out << "Best position: (";
+	out << std::setprecision(20) << "Best value found: " << swarm_[global_best_index_].get_best_value() << std::endl;
+	out << "Best position found: (";
 	for (std::size_t i = 0; i < dim; ++i)
 		out << swarm_[global_best_index_].get_best_position()[i] << ", ";
 	out << "\b\b)" << std::endl;
-	out << "Total constraint violation: " << swarm_[global_best_index_].get_best_constraint_violation() << std::endl;
-}
-
-template <std::size_t dim>
-double SASPSO<dim>::get_global_best_value() const
-{
-	return swarm_[global_best_index_].get_best_value();
-}
-
-template <std::size_t dim>
-const RealVector<dim> &SASPSO<dim>::get_global_best_position() const
-{
-	return swarm_[global_best_index_].get_best_position();
+	out << "Total constraint violation obtained: " << swarm_[global_best_index_].get_best_constraint_violation() << std::endl;
 }
 
 template <std::size_t dim>

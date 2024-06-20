@@ -19,6 +19,8 @@ using namespace type_traits;
  * @param fitness_probability_ proportional to the fitness value of the Bee, used in updating the position
  * @param failure_counter_ the number of iterations in which the Bee has not improved
  * @param constraint_violation_ the sontraint violation of the Bee's position
+ * @param fitness_value_ the fitness value of the Bee
+ * @param index_in_colony_ the index of the Bee in the colony used when updating the position
  *
  * @tparam dim the dimension of the space in which the function is defined
  */

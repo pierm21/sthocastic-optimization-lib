@@ -112,14 +112,14 @@ public:
 	 *
 	 * @return double the global best value
 	 */
-	double get_global_best_value() const override;
+	double get_global_best_value() const override { return swarm_[global_best_index_].get_best_value(); };
 
 	/**
 	 * @brief Get the position of the global best minimum found by the algorithm
 	 *
 	 * @return const RealVector<dim>& a const reference to the global best position vector
 	 */
-	const RealVector<dim> &get_global_best_position() const override;
+	const RealVector<dim> &get_global_best_position() const override { return swarm_[global_best_index_].get_best_position(); };
 
 	/**
 	 * @brief Checks if the global best found by the algorithm is a feasible solution according to the constraints

@@ -19,6 +19,7 @@ public:
 	/**
 	 * @brief Enumerator to represent the available optimizers
 	 * - SelfAdaptiveSPSO: Self Adaptive Particle Swarm Optimization
+	 * - ArtificialBeeColony: Artificial Bee Colony
 	 */
 	enum OptimizerName
 	{

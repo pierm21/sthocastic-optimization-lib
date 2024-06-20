@@ -20,13 +20,13 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSEND"*/
 
-#define dimension 8
+/*#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"
+#define problem_name "G10"*/
 
-/*#define dimension 30
+#define dimension 30
 #define test_problem TestProblems::GRIEWANK
-#define problem_name "GRIEWANK"*/
+#define problem_name "GRIEWANK"
 
 /*#define dimension 10
 #define test_problem TestProblems::G7
@@ -98,6 +98,8 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	double exact_value = TestProblems::get_exact_value<dimension>(test_problem);
 
 	// Print the final data
+	opt->print_results();
+	std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
 	std::cout << "Absolute error: " << std::abs(opt->get_global_best_value() - exact_value) << std::endl;
 	std::cout << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
 
@@ -303,6 +305,7 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	auto t2 = std::chrono::high_resolution_clock::now();
 	opt->print_results();
 
+	std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
 	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
 	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
 	double time_serial = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
@@ -317,6 +320,8 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	opt->optimize_parallel();
 	t2 = std::chrono::high_resolution_clock::now();
 	opt->print_results();
+	
+	std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
 	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
 	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
 	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();

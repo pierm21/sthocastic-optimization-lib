@@ -71,14 +71,14 @@ public:
 	/**
 	 * @brief Get the global best value object
 	 *
-	 * @return double the global best value
+	 * @return double the global best value found up to the moment
 	 */
 	virtual double get_global_best_value() const = 0;
 
 	/**
 	 * @brief Get the global best position object
 	 *
-	 * @return const RealVector<dim>& a const reference to the global best position vector
+	 * @return const RealVector<dim>& a const reference to the global best position vector found up to the moment
 	 */
 	virtual const RealVector<dim> &get_global_best_position() const = 0;
 

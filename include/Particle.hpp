@@ -26,7 +26,6 @@ class Particle
 protected:
 	std::shared_ptr<Problem<dim>> problem_;
 	std::shared_ptr<std::mt19937> random_generator_;
-
 	RealVector<dim> position_;
 
 public:
@@ -35,7 +34,6 @@ public:
 	 *
 	 * @param problem shared pointer to the problem to be optimized
 	 */
-
 	Particle(const std::shared_ptr<Problem<dim>> &problem,
 			 const std::shared_ptr<std::mt19937> &random_generator)
 		: problem_(problem),

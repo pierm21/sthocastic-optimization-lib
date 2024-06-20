@@ -23,6 +23,7 @@ void ABC<dim>::initialize()
 		colony_[i].initialize();
 	}
 
+	// Initialize the global best values with the values of the first bee in the colony
 	global_best_position_ = colony_[0].get_position();
 	global_best_value_ = colony_[0].get_value();
 	global_best_constraint_violation_ = colony_[0].get_constraint_violation();
@@ -44,7 +45,6 @@ template <std::size_t dim>
 void ABC<dim>::optimize(std::ostream& history_out, std::ostream& simulation_out, const int interval)
 {
 	int current_iter = 0;
-
 
 	std::uniform_real_distribution<double> distr(0, 1.0);
 	std::random_device rand_dev;
@@ -163,17 +163,6 @@ void ABC<dim>::optimize(std::ostream& history_out, std::ostream& simulation_out,
 }
 
 template <std::size_t dim>
-void ABC<dim>::print_results(std::ostream &out) const
-{
-	out << std::setprecision(20) << "Best value: " << global_best_value_ << std::endl;
-	out << "Best position: (";
-	for (std::size_t i = 0; i < dim; ++i)
-		out << global_best_position_[i] << ", ";
-	out << "\b\b)" << std::endl;
-	out << "Total constraint violation: " << global_best_constraint_violation_ << std::endl;
-}
-
-template <std::size_t dim>
 void ABC<dim>::initialize_parallel()
 {
 	int mpi_rank, mpi_size;
@@ -269,6 +258,8 @@ void ABC<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simula
 		std::random_device rand_dev;
 		std::mt19937 generator(rand_dev());
 
+		// Divide the colony among the threads, each thread has its own private colony, avoiding false sharing issues
+		// observed whith threads directly accessing different elements of the same vector
 		size_t num_private_colony = colony_size_ / omp_get_num_threads();
 		size_t thread_id = omp_get_thread_num();
 		typename std::vector<Bee<dim>>::iterator first = colony_.begin() + num_private_colony * thread_id;
@@ -425,4 +416,15 @@ void ABC<dim>::custom_reduction(void *invec, void *inoutvec, int *len, MPI_Datat
 		for (std::size_t i = 0; i < dim; ++i)
 			inout[i + 2] = in[i + 2];
 	}
+}
+
+template <std::size_t dim>
+void ABC<dim>::print_results(std::ostream &out) const
+{
+	out << std::setprecision(20) << "Best value found: " << global_best_value_ << std::endl;
+	out << "Best position found: (";
+	for (std::size_t i = 0; i < dim; ++i)
+		out << global_best_position_[i] << ", ";
+	out << "\b\b)" << std::endl;
+	out << "Total constraint violation obtained: " << global_best_constraint_violation_ << std::endl;
 }

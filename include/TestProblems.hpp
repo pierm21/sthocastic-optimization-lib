@@ -21,6 +21,8 @@ namespace TestProblems
 	 * - TOWNSEND: 2D function with global minimum f(2.0052938, 1.1944509) = -2.0239884
 	 * - GOMEZ_LEVY: 2D function with global minimum f(0.089842010, -0.7126564) = -1.031628453
 	 * - G10: 8D function with global minimum f(579.3167,1359.943,5110.71,182.0714,295.5985,217.979,286.4162,395.5979) = 7049.248
+	 * - G7: 10D function with global minimum f(2.1719, 2.3636, 8.7739, 5.0959, 0.9906, 1.4305, 1.3216, 9.8287, 8.2800, 8.3759) = 24.30620
+	 * - GRIEWANK: 30D function with global minimum f(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0) = 1
 	 */
 	enum ProblemName
 	{

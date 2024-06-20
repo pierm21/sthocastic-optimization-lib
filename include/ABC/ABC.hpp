@@ -45,7 +45,7 @@ public:
 		: Optimizer<dim>(problem),
 		  colony_size_(colony_size), max_iter_(max_iter),
 		  MR_(MR), tol_(tol),
-		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit), // TODO: esnure that dim can be used here
+		  limit_(limit == -1 ? static_cast<int>(colony_size * dim * 0.5) : limit),
 		  SPP_(SPP == -1 ? static_cast<int>(colony_size * dim * 0.5) : SPP){};
 
 	/**
