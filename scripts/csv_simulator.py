@@ -74,6 +74,7 @@ def animate(i):
     ax.set_ylim(y_min, y_max)
 
     ax.legend()
+    ax.title("Particles behaviour")
 
 
 # Create animation
