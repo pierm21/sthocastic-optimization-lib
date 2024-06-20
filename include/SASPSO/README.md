@@ -85,7 +85,8 @@ The data collected for many number of threads enable the possiblity to do a stro
 <p align="center">
   <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/b73fe949-ba11-4862-b6a3-9ecc5dc7d9f1" height="500">
 </p>
-We note a suboptimal behaviour expecially for smaller swarms and for higher number of threads (bottom-right area) as expected. The synchronization overhead is not negligible and have a stronger impact when execution time is quite low. For bigger problems, i.e. 1K and 2K particles, the solver shows an almost optimal behaviour up to 4 threads, then it experience a small deterioration, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability.
+We note a suboptimal behaviour expecially for smaller swarms and for higher number of threads (bottom-right area) as expected. The synchronization overhead is not negligible and have a stronger impact when execution time is quite low. For bigger problems, i.e. 1K and 2K particles, the solver shows an almost optimal behaviour up to 4 threads, then it experience a small deterioration, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability. Overall, for computations that lasts for less than 5 seconds it is possible to observe only small improvements from multithreading.
+This data has been collected running the tests in the MOX cluster, on up to 16 physical cores.
 
 
 ### [<< Back to parent README](../../README.md)
