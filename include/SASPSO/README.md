@@ -34,7 +34,7 @@ At each iteration of the parallel version two synchronization points are needed:
 - The first to ensure that the fesible particles count has been performed entirely before accessing the reduced varible.
 - The second after the computation of the feasibility threshold in order to give the same updated value to all particles.
 
-The reduction for the global best particle has been done using a critical section instead of a custom tree reduction since it has an easier implementation, the number of threads is usually limited, and the probability that all the threads arrives at the same instant is quite low due to the previous work sharing construct that has not a barrier at exit. Moreover, using the OMP reduction
+The reduction for the global best particle has been done using a critical section instead of a custom tree reduction since it has an easier implementation, the number of threads is usually limited, and the probability that all the threads arrives at the same instant is quite low due to the previous work sharing construct that has not a barrier at exit. Moreover, it is worth noting that the OMP pragma implementing the reduction offers similar performances with respect to the proposed implementation, but with the drawback that needs the definition of custom reduction function and the copy of the reduced values in a plain structure for each particle, resulting in a non negligible worsening of the code without performance improvement. This because when dealing with non standard data types, OMP struggles to impelent efficient reductions and in most cases it uses critical sections.
 
 ## Required parameters
 This algorithm requires only the basic parameters described by the common interface. Furter performance improvements can be achieved by tuning several optional parameters. In order to choose these
@@ -87,7 +87,5 @@ The data collected for many number of threads enable the possiblity to do a stro
 </p>
 We note a suboptimal behaviour expecially for smaller swarms and for higher number of threads (bottom-right area) as expected. The synchronization overhead is not negligible and have a stronger impact when execution time is quite low. For bigger problems, i.e. 1K and 2K particles, the solver shows an almost optimal behaviour up to 4 threads, then it experience a small deterioration, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability.
 
-## Author
-Guerrini Alberto
 
 ### [<< Back to parent README](../../README.md)
