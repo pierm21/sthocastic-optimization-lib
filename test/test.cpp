@@ -10,19 +10,19 @@
 
 using namespace type_traits;
 namespace fs = std::filesystem;
-
+/*
 #define dimension 2
 #define test_problem TestProblems::GOMEZ_LEVY
 #define problem_name "GOMEZ_LEVY"
-
+*/
 
 /*#define dimension 2
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSEND"*/
-/*
+
 #define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"*/
+#define problem_name "G10"
 
 /*#define dimension 30
 #define test_problem TestProblems::GRIEWANK
@@ -119,6 +119,11 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
+	int mpi_rank = 0;
+	int mpi_size = 1;
+	MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+	MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
 	// Get the number of omp threads
 	int tot_threads = 0;
 #pragma omp parallel
@@ -126,65 +131,75 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 #pragma omp single
 		tot_threads = omp_get_num_threads();
 	}
+	tot_threads *= mpi_size;
 
-	// Preliminary informations to std out
-	std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
-	std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;
-
-	std::cout << "Problem: " << problem_name << std::endl;
-	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Log multiplier: " << log_multiplier << std::endl;
-
-
-	// Initialize the file
 	std::ofstream file_out;
-	file_out.open("../output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv");
-	if (!file_out)
+	if (mpi_rank == 0)
 	{
-		std::cout << "Error opening file" << std::endl;
-		return -1;
+		// Preliminary informations to std out
+		std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
+		std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;
+
+		std::cout << "Problem: " << problem_name << std::endl;
+		std::cout << "Max iterations: " << iter << std::endl;
+		std::cout << "Log multiplier: " << log_multiplier << std::endl;
+
+		// Initialize the file
+		file_out.open("../output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv");
+		if (!file_out)
+		{
+			std::cout << "Error opening file" << std::endl;
+		}
+		// Write comments and header to file
+		file_out << "# Execution time as function of the colony size" << std::endl;
+		file_out << "# Problem: " << problem_name << std::endl;
+		file_out << "# Dimension: " << dimension << std::endl;
+		file_out << "# Threads: " << tot_threads << std::endl;
+		file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
+
+		std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
+		std::cout << "Logging every x" << log_multiplier << " iterations" << std::endl;
 	}
-	// Write comments and header to file
-	file_out << "# Execution time as function of the colony size" << std::endl;
-	file_out << "# Problem: " << problem_name << std::endl;
-	file_out << "# Dimension: " << dimension << std::endl;
-	file_out << "# Threads: " << tot_threads << std::endl;
-	file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
-
-	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
-	std::cout << "Logging every x" << log_multiplier << " iterations" << std::endl;
-
 	for (int i = init_particles; i <= max_particles; i *= log_multiplier)
 	{
-		// Print progress to stdout
-		std::cout << "Starting test with " << i << " particle(s)" << std::endl;
-		// Optimize the problem serially
+		std::chrono::time_point<std::chrono::system_clock> t1, t2, t3, t4;
+		if (mpi_rank == 0)
+		{
+			// Print progress to stdout
+			std::cout << "Starting test with " << i << " particle(s)" << std::endl;
+			// Optimize the problem serially
+			std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
+			opt->set_log_verbose(false);
+
+			opt->initialize();
+			t1 = std::chrono::high_resolution_clock::now();
+			opt->optimize();
+			t2 = std::chrono::high_resolution_clock::now();
+		}
+		// Optimize parallel
 		std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
 		opt->set_log_verbose(false);
 
-		opt->initialize();
-		auto t1 = std::chrono::high_resolution_clock::now();
-		opt->optimize();
-		auto t2 = std::chrono::high_resolution_clock::now();
-
-		// Optimize parallel
-		opt = OptimizerFactory<dimension>::create(algorithm_name, problem, i, iter);
-		opt->set_log_verbose(false);
-
 		opt->initialize_parallel();
-		auto t3 = std::chrono::high_resolution_clock::now();
+		t3 = std::chrono::high_resolution_clock::now();
 		opt->optimize_parallel();
-		auto t4 = std::chrono::high_resolution_clock::now();
-
-		// Write data to file
-		file_out << i << ",";
-		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
-		file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
-		file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+		t4 = std::chrono::high_resolution_clock::now();
+		if (mpi_rank == 0)
+		{
+			// Write data to file
+			file_out << i << ",";
+			file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << ",";
+			file_out << std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << ",";
+			file_out << double(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count()) / std::chrono::duration_cast<std::chrono::milliseconds>(t4 - t3).count() << std::endl;
+		}
 	}
-	file_out.close();
-	return 0;
+	if (mpi_rank == 0)
+	{
+		// Close the file
+		file_out.close();
+	}
 
+	return 0;
 }
 
 int static_adaptive_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
