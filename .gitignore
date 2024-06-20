@@ -37,3 +37,4 @@ output/*
 .vscode/*
 temp/*
 output/*
+plots/*

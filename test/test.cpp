@@ -113,10 +113,10 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 // test the time as function of the number of particles
 int time_numparticles_test(const typename OptimizerFactory<dimension>::OptimizerName &algorithm_name)
 {
-	int iter = 6000;
-	int max_particles = 500;
-	constexpr int log_interval = 20;
-	constexpr int init_particles = 20;
+	int iter = 10000;
+	int max_particles = 2048;
+	constexpr int log_multiplier = 2;
+	constexpr int init_particles = 32;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
@@ -135,7 +135,7 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 
 	std::cout << "Problem: " << problem_name << std::endl;
 	std::cout << "Max iterations: " << iter << std::endl;
-	std::cout << "Log interval: " << log_interval << std::endl;
+	std::cout << "Log multiplier: " << log_multiplier << std::endl;
 
 
 	// Initialize the file
@@ -154,9 +154,9 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 	file_out << "Num_particles,Serial_time,Parallel_time,Speedup" << std::endl;
 
 	std::cout << "Starting test from 1 to " << max_particles << " particles" << std::endl;
-	std::cout << "Logging every " << log_interval << " iterations" << std::endl;
+	std::cout << "Logging every x" << log_multiplier << " iterations" << std::endl;
 
-	for (int i = init_particles; i <= max_particles; i += log_interval)
+	for (int i = init_particles; i <= max_particles; i *= log_multiplier)
 	{
 		// Print progress to stdout
 		std::cout << "Starting test with " << i << " particle(s)" << std::endl;
