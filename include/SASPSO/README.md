@@ -24,7 +24,7 @@ This version can also solve contrained optimization problems (COPs) exploiting a
 This technique is better than the common penalty rule since does not require additional parameters. More details can be found in [this](https://doi.org/10.1016/j.compchemeng.2011.09.018) paper by Zhang et al.
 
 Two main classes have been developed:
-- `Particle` represents a single particle of the swarm and manage its initialization and update at each iteration. It also implement the feasibility rule.
+- `SASPSO_Particle` represents a single particle of the swarm and manage its initialization and update at each iteration. It also implement the feasibility rule.
 - `SASPSO` wraps the swarm of particles and the SASPSO 2011 algorithm besides with its initialization, execution, and output methods. 
 
 The `SASPSO` class provides methods for the **serial** and the **parallel** implementation for both initialization and optimization methods.
@@ -34,14 +34,14 @@ At each iteration of the parallel version two synchronization points are needed:
 - The first to ensure that the fesible particles count has been performed entirely before accessing the reduced varible.
 - The second after the computation of the feasibility threshold in order to give the same updated value to all particles.
 
-The reduction for the global best particle has been done using a critical section instead of a custom tree reduction since it has an easier implementation, the number of threads is usually limited, and the probability that all the threads arrives at the same instant is quite low due to the previous work sharing construct that has not a barrier at exit.
+The reduction for the global best particle has been done using a critical section instead of a custom tree reduction since it has an easier implementation, the number of threads is usually limited, and the probability that all the threads arrives at the same instant is quite low due to the previous work sharing construct that has not a barrier at exit. Moreover, using the OMP reduction
 
 ## Required parameters
 This algorithm requires only the basic parameters described by the common interface. Furter performance improvements can be achieved by tuning several optional parameters. In order to choose these
-parameters the user should follow the indications in [this](http://dx.doi.org/10.1155/2016/8627083) paper.
+parameters the user should follow the indications in [this](http://dx.doi.org/10.1155/2016/8627083) paper. Must be noted that the optional parameters are the start and end value for each of the SPSO's parameters, i.e. inertia, cognitive, and social.
 
 ## Performed tests
-The implementation of the SASPSO 2011 is provided with some tests in order to analyse its correctness and performance. The test source file for this algorithm is `test/saspso.cpp`.
+The implementation of the SASPSO 2011 is provided with some tests in order to analyse its correctness and performance. Tests are the same general ones used by all the solvers, with except to the `static-adaptive` one since this algorithm provides better convergence using the parameter adaptivity.
 In this section the provided tests are described and the results are shown.
 
 ### Optimization of a problem - `optimize`
@@ -79,7 +79,13 @@ This test optimizes several time a given test function varying only the number o
   <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/cafccff2-9dda-4cea-8fbc-23a11b0fd172" height="500">
 </p>
 
-This result shows a parallel speedup around $9.25\times$ running on an Intel Core i7-13700H machine (14 hardware cores, 20 logical threads). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
+This result shows a parallel speedup around $9.25\times$ running on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
+
+The data collected for many number of threads enable the possiblity to do a strong scaling study. Using the huge G10 test problem and 5000 iterations to have better results, the following results have been collected.
+<p align="center">
+  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/b73fe949-ba11-4862-b6a3-9ecc5dc7d9f1" height="500">
+</p>
+We note a suboptimal behaviour expecially for smaller swarms and for higher number of threads (bottom-right area) as expected. The synchronization overhead is not negligible and have a stronger impact when execution time is quite low. For bigger problems, i.e. 1K and 2K particles, the solver shows an almost optimal behaviour up to 4 threads, then it experience a small deterioration, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability.
 
 ## Author
 Guerrini Alberto
