@@ -45,7 +45,7 @@ The implementation of the SASPSO 2011 is provided with some tests in order to an
 In this section the provided tests are described and the results are shown.
 
 ### Optimization of a problem - `optimize`
-This test optimizes the test function setted in the `test_problem` define with the given dimension. It logs the global best value, the related total constraint violation, the violation threshold, and the number of feasible particles in function of the iterations count, storing the data in the `output/saspso_optimize.csv` file.
+This test optimizes the test function setted in the `test_problem` define with the given dimension. It logs the global best value, the related total constraint violation, the violation threshold, and the number of feasible particles in function of the iterations count, storing the data in the `output/optimize_saspso_threadnum.csv` file.
 
 In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
 <p align="center">
@@ -73,13 +73,13 @@ NB: Small differences can derive from the intrinsic randomness of this algorithm
 This plot shows that the parameter adaptivity feature of this implementation provides a much faster convergence with respect to static parameters (i.e. 200 vs 600 iterations). Both the serial and parallel version of the adaptive algorithm have comparable convergence rate. The adaptivity does not affect the convergence to the feasible search area as shown by the second plot.
 
 ### Execution time and Speedup - `time_numparticles`
-This test optimizes several time a given test function varying only the number of particles. The optimization is done both serially and in parallel logging the execution time in order to compute the parallel speedup. The test stores in the `output/saspso_time_numparticles.csv` file all the logged execution time as function of the swarm size.
+This test optimizes several time a given test function varying only the number of particles. The optimization is done both serially and in parallel logging the execution time in order to compute the parallel speedup. The test stores in the `output/time_numparticles_saspso_threadnum.csv` files all the logged execution time as function of the swarm size.
 
 <p align="center">
   <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/cafccff2-9dda-4cea-8fbc-23a11b0fd172" height="500">
 </p>
 
-This result shows a parallel speedup around $9.25\times$ running on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
+This result shows a parallel speedup around $9.25\times$ running locally on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. Of course we must also consider the architecture of the processor, having not homogeneous cores. A better scalability study is provided below.
 
 The data collected for many number of threads enable the possiblity to do a strong scaling study. Using the huge G10 test problem and 5000 iterations to have better results, the following results have been collected.
 <p align="center">
