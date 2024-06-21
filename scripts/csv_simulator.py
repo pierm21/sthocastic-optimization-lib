@@ -77,7 +77,7 @@ def animate(i):
 
 
 # Create animation
-ani = animation.FuncAnimation(fig, animate, frames=len(unique_iters), interval=200, repeat=False)
+ani = animation.FuncAnimation(fig, animate, frames=len(unique_iters), interval=200, repeat=False) # type: ignore
 
 # Save animation as mp4
 ani.save(path.join(basepath, "..", "output", sys.argv[1][:-4] + ".mp4"), writer='ffmpeg')

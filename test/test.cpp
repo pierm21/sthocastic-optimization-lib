@@ -23,8 +23,8 @@ namespace fs = std::filesystem;
 #define dimension 8
 #define test_problem TestProblems::G10
 #define problem_name "G10"
-
-/*#define dimension 30
+/*
+#define dimension 30
 #define test_problem TestProblems::GRIEWANK
 #define problem_name "GRIEWANK"*/
 
@@ -133,11 +133,11 @@ int time_numparticles_test(const typename OptimizerFactory<dimension>::Optimizer
 #pragma omp single
 		tot_threads = omp_get_num_threads();
 	}
-	tot_threads *= mpi_size;
 
 	std::ofstream file_out;
 	if (mpi_rank == 0)
 	{
+		tot_threads *= mpi_size;
 		// Preliminary informations to std out
 		std::cout << "Time and Speedup as function of colony size for " << alg_name_str << std::endl;
 		std::cout << "Logs in /output/time_numparticles_" + alg_name_str + "_" + std::to_string(tot_threads) + ".csv" << std::endl;

@@ -33,10 +33,11 @@ x_{ij}, & \text{otherwise}.
 - `Onlooker Bee Phase`: Onlooker bees select new food sources to be followed, based on their probability $p_i$, which is proportional to the fitness of the food source.
 
 $$
-p_i = \begin{cases} 
-0.5 + \left( \frac{\text{fitness}_i}{\sum_{j=1}^{n} \text{fitness}_j} \right) \times 0.5, & \text{if solution is feasible} \\[12pt]
-\left( \frac{1 - \text{violation}_i}{\sum_{j=1}^{n} \text{violation}_j} \right) \times 0.5. & \text{otherwise}
-\end{cases}$$
+p_i = \begin{cases}
+  0.5 + \frac{fitness_i}{\sum\limits_{j=1}^{n} fitness_j} \times 0.5 & \text{if feasible} \\
+  \left( 1 - \frac{violation_i}{\sum\limits_{j=1}^{n} (violation_j)} \right) \times 0.5 & \text{otherwise}
+\end{cases}
+$$
 
 - `Scout Bee Phase`: If a food source cannot be improved further, it is abandoned, and a scout bee randomly searches for a new food source, meaning that the bee is reinitialized.
 - `Termination`: The process repeats until a stopping criterion (maximum number of iterations or acceptable solution quality) is met.
@@ -59,11 +60,12 @@ The `ABC` class provides methods for the **serial** and the **parallel** impleme
  
 In the parallel version of the ABC algorithm, the entire colony of bees is divided equally among the available processors. This parallel implementation is designed for shared memory architectures and has been developed according to what proposed [here](https://ieeexplore.ieee.org/document/5393726), in fact some modifications with respect to the classical algorithm are needed in order to parallelize it. 
 
-In particular, each thread handles a subset of the total bee's colony and operate completely on it, neglecting what is done by the other threads.
+In particular, each thread handles a subset of the total bee's colony and operate completely on it, neglecting what is done by the other threads. This rearrangement of the logic of the classical version ABC algorithm, allows not to have significant overhead due to synchronization in the parallel implementation.
 
-A final reduction, selecting the best bee among all the local colonies, will determine the global result.
+In fact, just a final reduction at the end of the optimize process is needed. It allows to select the best bee among all the local colonies and will determine the global result.
 
-TODO: MPI parallelism
+The MPI parallelization has been performed exploiting the same algorithmic idea. The global colony is divided among different MPI processes, each one operating independetly from the other one, and a custom MPI reduction based on the feasibility rule has been implemented in order to find, at the end of the optimize process, the global optimal solution.
+
 
 
 ## Tests and Results
@@ -71,20 +73,35 @@ Optimization of a Problem - `optimize`
 
 This test optimizes a test function defined in the `test_problem` definte with the given dimensions. It logs the best value, total constraint violation, and the number of feasible solutions over iterations, storing the data in `output/abc_optimize_1.csv` file.
 
-In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
+In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 20 particles and 6k iterations are performed.
 <p align="center">
-  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/f502d6f7-2b0f-4466-9eb8-18ac88ddd05b" height="500">
+<img src= "https://github.com/AMSC22-23/stochastic-optimization-lib/assets/131521380/50532e2d-fb53-4396-9443-cb74cb50fb03)" height="500"> 
 </p>
 
-This plot highlights the policy to select the best among two particles that SASPSO 2011 utilizes:
+
+This plot highlights the policy to select the best among two particles that ABC utilizes:
 1. A feasible solution is preferred over an infeasible solution
 2. Among two feasible solutions, the one with better objective function value is preferred
 3. Among two infeasible solutions, the one with smaller total constraint violation is chosen
 
-Starting from a high-violation good-fitness solution and a very relaxed violation threshold the algorithm decreases the threshold converging to feasible solutions. The first non-feasible solution will have a better fitness, then when the 0 violation threshold is reached the first feasible solutions will have a very bad fitness. From now the constraint violation will be kept to 0, and the algorithms finds feasible solutions that minimizes the fiteness converging to the optimum.
+As soon as the 0 violation region is reached, the particles won't leave it anymore, corresponding to a global contraint violation that starts being very high, but once has become 0 it won't increase anymore.
+In addition, it is worth observing that the first 1k iterations are sufficient to reach already a good approximation of the real optimum, while the improvements obtained by the other 5k iterations are less relevant, although they allow to practically reach the correct solution.
 
 Execution Time and Speedup - `time_numparticles`
 
+This test optimizes several time a given test function varying only the number of particles. The optimization is done both serially and in parallel logging the execution time in order to compute the parallel speedup. The test stores in the output/abc_time_numparticles_num_threads.csv file all the logged execution time as function of the swarm size.
+
+
+
+This result shows a parallel speedup around ........running on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
+
+The data collected for many number of threads enable the possiblity to do a strong scaling study. Using the huge G10 test problem and 5000 iterations to have better results, the following results have been collected.
+
+<p align="center">
+<img src= "https://github.com/AMSC22-23/stochastic-optimization-lib/assets/131521380/e0c36c05-4223-4a8f-aeee-5187f607cbbc)" height="500"> 
+</p>
+
+We note an almost optimal behaviour with high dimension problems and a small number of threads (up to 4). A generale small deterioration is experienced between 4 and 8 threads, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability. Overall, for computations that lasts for less than 5 seconds it is possible to observe only small improvements from multithreading. This data has been collected running the tests in the MOX cluster, on up to 16 physical cores. 
 This test logs the execution time of the ABC algorithm for varying swarm sizes, both in serial and parallel modes. It computes the parallel speedup and stores the data in output/abc_time_numparticles_num_threads.csv.
 
 Conclusion
