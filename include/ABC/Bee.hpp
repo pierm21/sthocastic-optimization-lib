@@ -67,7 +67,7 @@ public:
 	 * @param total_fitness_value 
 	 * @param total_constraint_violation 
 	 */
-	void compute_probability(const double total_fitness_value, const double total_constraint_violation);
+	void compute_probability(const double total_fitness_value, const double total_constraint_violation, const double tol= 1e-6);
 
 	/**
 	 * @brief Print the Bee parameters and actual state
@@ -117,10 +117,11 @@ public:
 	 *
 	 * @param value the fitness value on the position you are comparing with the one of this Bee
 	 * @param viol the constraint violation on the position you are comparing with the one of this Bee
+	 * @param tol the tolerance to be used in the comparison
 	 * @return true if this Bee is better than the other one
 	 * @return false otherwise
 	 */
-	bool feasibility_rule(const double value, const double viol) const;
+	bool feasibility_rule(const double value, const double viol, const double tol= 1e-6) const;
 
 
 private:

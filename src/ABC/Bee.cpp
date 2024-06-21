@@ -112,10 +112,10 @@ void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& col
 }
 
 template <size_t dim>
-void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation)
+void Bee<dim>::compute_probability(const double total_fitness_value, const double total_constraint_violation, const double tol)
 {
     // If the solution is feasible, the probability is proportional to the fitness value
-    if (constraint_violation_ == 0)
+    if (constraint_violation_ < tol)
     {
         fitness_probability_ = 0.5 + 0.5 * (fitness_value_ / total_fitness_value);
     }
@@ -143,15 +143,15 @@ double Bee<dim>::compute_constraint_violation(const RealVector<dim> &position) c
 }
 
 template <size_t dim>
-bool Bee<dim>::feasibility_rule(const double value, const double viol) const
+bool Bee<dim>::feasibility_rule(const double value, const double viol, const double tol) const
 {
     // (a) a feasible solution is preferred over an infeasible solution
-    if (this->constraint_violation_ == 0 && viol > 0)
+    if (this->constraint_violation_ < tol && viol > tol)
         return true;
-    else if (this->constraint_violation_ > 0 && viol == 0)
+    else if (this->constraint_violation_ > tol && viol < tol)
         return false;
     // (b) among two feasible solutions, the one with better objective function value is preferred
-    else if (this->constraint_violation_ == 0 && viol == 0)
+    else if (this->constraint_violation_ < tol && viol < tol)
         return this->cost_value_ < value;
     // (c) among two infeasible solutions, the one with smaller TAV is chosen
     else

@@ -31,7 +31,7 @@ void ABC<dim>::initialize()
 	// Find the best bee in the colony
 	for (size_t i = 1; i < colony_size_; ++i)
 	{
-		if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_))
+		if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_, tol_))
 		{
 			global_best_position_ = colony_[i].get_position();
 			global_best_value_ = colony_[i].get_value();
@@ -78,7 +78,7 @@ void ABC<dim>::optimize(std::ostream& history_out, std::ostream& simulation_out,
 		// Compute the probability of each position to be selected by the onlooker bees
 		for (size_t i = 0; i < colony_size_; ++i)
 		{
-			colony_[i].compute_probability(total_fitness_value, total_constraint_violation);
+			colony_[i].compute_probability(total_fitness_value, total_constraint_violation, tol_);
 		}
 
 		// Select, according to the fitness probability, the bees that will be updated
@@ -122,7 +122,7 @@ void ABC<dim>::optimize(std::ostream& history_out, std::ostream& simulation_out,
 		for (size_t i = 0; i < colony_size_; ++i)
 		{
 			// Find the best bee in the colony
-			if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_))
+			if (colony_[i].feasibility_rule(global_best_value_, global_best_constraint_violation_, tol_))
 			{
 				global_best_position_ = colony_[i].get_position();
 				global_best_value_ = colony_[i].get_value();
@@ -224,7 +224,7 @@ void ABC<dim>::initialize_parallel()
 #pragma omp for nowait schedule(static)
 		for (size_t i = 1; i < colony_size_; ++i)
 		{
-			if (colony_[i].feasibility_rule(colony_[local_best_index].get_value(), colony_[local_best_index].get_constraint_violation()))
+			if (colony_[i].feasibility_rule(colony_[local_best_index].get_value(), colony_[local_best_index].get_constraint_violation(), tol_))
 			{
 				local_best_index = i;
 			}
@@ -232,7 +232,7 @@ void ABC<dim>::initialize_parallel()
 
 // Reduction: Each thread updates the global values if it has a better solution
 #pragma omp critical(update_global_best_init)
-		if (colony_[local_best_index].feasibility_rule(global_best_value_, global_best_constraint_violation_))
+		if (colony_[local_best_index].feasibility_rule(global_best_value_, global_best_constraint_violation_, tol_))
 		{
 			global_best_position_ = colony_[local_best_index].get_position();
 			global_best_value_ = colony_[local_best_index].get_value();
@@ -292,7 +292,7 @@ void ABC<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simula
 			// Compute the probability of each position to be selected by the onlooker bees
 			for (size_t i = 0; i < private_colony.size(); ++i)
 			{
-				private_colony[i].compute_probability(local_fitness_value, local_constraint_violation);
+				private_colony[i].compute_probability(local_fitness_value, local_constraint_violation, tol_);
 			}
 
 			// Select, according to the fitness probability, the bees that will be updated
@@ -336,7 +336,7 @@ void ABC<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simula
 			// Find the best bee in the private colony
 			for (size_t i = 0; i < private_colony.size(); ++i)
 			{
-				if (private_colony[i].feasibility_rule(private_colony[local_best_index].get_value(), private_colony[local_best_index].get_constraint_violation()))
+				if (private_colony[i].feasibility_rule(private_colony[local_best_index].get_value(), private_colony[local_best_index].get_constraint_violation(), tol_))
 				{
 					local_best_index = i;
 				}
@@ -348,7 +348,7 @@ void ABC<dim>::optimize_parallel(std::ostream& history_out, std::ostream& simula
 
 // Reduction: each thread updates the global values (locally to each process) if it has a better solution
 #pragma omp critical(update_global_best_init)
-		if (private_colony[local_best_index].feasibility_rule(global_best_value_, global_best_constraint_violation_))
+		if (private_colony[local_best_index].feasibility_rule(global_best_value_, global_best_constraint_violation_, tol_))
 		{
 			global_best_position_ = private_colony[local_best_index].get_position();
 			global_best_value_ = private_colony[local_best_index].get_value();
