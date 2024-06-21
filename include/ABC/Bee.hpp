@@ -47,7 +47,6 @@ public:
 		  index_in_colony_(index_in_colony){};
 
 	Bee() = default;
-	~Bee() = default;
 
 	/**
 	 * @brief Initialize the Bee parameters
@@ -58,7 +57,7 @@ public:
 	 * @brief Update the Bee position, using the Employed Bee strategy
 	 * 
 	 * @param MR modification rate
-	 * @param colony 
+	 * @param colony const reference to colony, needed to read data from other Bees in order to update your position.
 	 */
     void update_position(const double MR, const std::vector<Bee<dim>>& colony);
 

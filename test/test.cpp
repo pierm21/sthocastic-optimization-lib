@@ -20,13 +20,13 @@ namespace fs = std::filesystem;
 #define test_problem TestProblems::TOWNSEND
 #define problem_name "TOWNSEND"*/
 
-/*#define dimension 8
+#define dimension 8
 #define test_problem TestProblems::G10
-#define problem_name "G10"*/
+#define problem_name "G10"
 
-#define dimension 30
+/*#define dimension 30
 #define test_problem TestProblems::GRIEWANK
-#define problem_name "GRIEWANK"
+#define problem_name "GRIEWANK"*/
 
 /*#define dimension 10
 #define test_problem TestProblems::G7
@@ -42,8 +42,8 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 {
 	constexpr int log_interval = 1;
 
-	int iter = 100;
-	int particles = 40;
+	int iter = 6000;
+	int particles = 20;
 	auto problem = TestProblems::create_problem<dimension>(test_problem);
 	std::string alg_name_str = OptimizerFactory<dimension>::get_string_name(algorithm_name);
 
@@ -57,7 +57,7 @@ int optimize(const typename OptimizerFactory<dimension>::OptimizerName &algorith
 	std::cout << "Num particles: " << particles << std::endl;
 
 	std::unique_ptr<Optimizer<dimension>> opt = OptimizerFactory<dimension>::create(algorithm_name, problem, particles, iter);
-	opt->set_log_verbose(true);
+	opt->set_log_verbose(false);
 
 	std::ofstream history_out;
 	history_out.open("../output/optimize_" + alg_name_str + "_" + std::to_string(1) + ".csv");
@@ -328,17 +328,6 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 	}
 	opt->initialize_parallel();
 	opt->optimize_parallel();
-<<<<<<< HEAD
-	t2 = std::chrono::high_resolution_clock::now();
-	opt->print_results();
-	
-	std::cout << "Exact value: " << TestProblems::get_exact_value<dimension>(test_problem) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute error: " << std::abs(TestProblems::get_exact_value<dimension>(test_problem) - opt->get_global_best_value()) << std::endl;
-	std::cout << std::setprecision(20) << "Absolute distance: " << (TestProblems::get_exact_position<dimension>(test_problem) - opt->get_global_best_position()).norm() << std::endl;
-	double time_parallel = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-	std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
-	std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
-=======
 	if(mpi_rank == 0)
 	{
 		t2 = std::chrono::high_resolution_clock::now();
@@ -349,7 +338,6 @@ int serial_parallel_test(const typename OptimizerFactory<dimension>::OptimizerNa
 		std::cout << std::setprecision(20) << "Elapsed inizialization + optimization time: " << time_parallel << std::endl;
 		std::cout << "Speedup: " << time_serial / time_parallel << std::endl;
 	}
->>>>>>> alberto
 
 	return 0;
 }

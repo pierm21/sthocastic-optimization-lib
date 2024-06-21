@@ -60,8 +60,7 @@ public:
 		  phi1_s_(phi1_s), phi1_f_(phi1_f),
 		  phi2_s_(phi2_s), phi2_f_(phi2_f){};
 
-    Particle_SASPSO() : Particle<dim>() {};
-	~Particle_SASPSO() = default;
+    Particle_SASPSO() = default;
 
 	/**
 	 * @brief Initialize the particle parameters

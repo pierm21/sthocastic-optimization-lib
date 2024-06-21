@@ -35,8 +35,6 @@ public:
 		  upper_bounds_(upper_bounds),
 		  equality_constraints_(){};                                                 
 
-	~Problem() = default;
-
 	const RealFunction<dim> &get_fitness_function() const { return fitness_function_; }
 	const RealVector<dim> &get_lower_bounds() const { return lower_bounds_; }
 	const RealVector<dim> &get_upper_bounds() const { return upper_bounds_; }

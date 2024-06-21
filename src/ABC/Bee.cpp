@@ -29,8 +29,8 @@ void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& col
     // index reffering to a chosen random neighbour different from the actual bee
     size_t neighbour_index = -1;
     std::uniform_real_distribution<double> distr(0, 1.0);
-    std::uniform_real_distribution<double> distr2(-1.0, 1.0);
-    std::uniform_int_distribution<int> distr3(0, colony_.size() - 1);
+    std::uniform_real_distribution<double> distrPosUpdate(-1.0, 1.0);
+    std::uniform_int_distribution<int> distrNeighbour(0, colony_.size() - 1);
     // new position of the bee after the update
     RealVector<dim> new_position;
 
@@ -44,11 +44,11 @@ void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& col
         {
             change_occurred = 1;
             // Generate a random number in the range [-1, 1], used as a factor to the position update
-            double phi = distr2(*this->random_generator_);
+            double phi = distrPosUpdate(*this->random_generator_);
             
             // Choose a random neighbour different from the actual bee
             do{
-                neighbour_index = distr3(*this->random_generator_);
+                neighbour_index = distrNeighbour(*this->random_generator_);
             } while (neighbour_index == index_in_colony_);
 
             // new position value of the i-th dimension
@@ -72,15 +72,15 @@ void Bee<dim>::update_position(const double MR, const std::vector<Bee<dim>>& col
     {
         // Choose a random neighbour different from the actual bee
         do{
-            neighbour_index = distr3(*this->random_generator_);
+            neighbour_index = distrNeighbour(*this->random_generator_);
         } while (neighbour_index == index_in_colony_);
 
         // Choose a random dimension to be modified
-        std::uniform_int_distribution<int> distr4(0, dim - 1);
-        int j = distr4(*this->random_generator_); 
+        std::uniform_int_distribution<int> distrRandomDim(0, dim - 1);
+        int j = distrRandomDim(*this->random_generator_); 
 
         // Generate a random number in the range [-1, 1], used as a factor to the position update
-        double phi = distr2(*this->random_generator_);
+        double phi = distrPosUpdate(*this->random_generator_);
 
         // Update position
         double new_parameter = this->position_[j] + phi * (this->position_[j] - colony_[neighbour_index].get_position()[j]);
