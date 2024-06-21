@@ -36,6 +36,7 @@ TODO: sample code
 - CMake
 - C++17
 - OpenMP 3.1
+- MPI 3.0
 - Python3
 - Eigen 3.3
 
@@ -63,12 +64,17 @@ NB: Eigen 3.3 can be loaded using [mk modules](https://github.com/pcafrica/mk) o
    ```
    ./test [test_name] [algorithm_name]
    ```
-   The execution of a test may produce an output file `test_name_algorithm_name_num_threads.csv` that can be found under the `output` folder.
-6. Plot the results in a graphical way using the `csv_ploter.py` script passing as argument only the filename of the .csv file stored in the the `output` folder.
+   The execution of a test may produce an output file `test-name_algorithm-name_num-threads.csv` that can be found under the `output` folder.
+6. Plot the results in a graphical way using the scripts in the `/script` folder. `csv_plotter.csv` takes as argument only the filename of one .csv file stored in the the `output` folder and plots only data related to a single run of a single solver. While `csv_scaling.py` is used to plot data from many files and takes as argument a type of plot among `speedup` for the parallel speedup and `strongsingle` for the strong scalability of each single solver. Lastly the `csv_simulation.py` plots the evolution of the swarm on a Gomez-Levy 2D problem.
+   It does requires the filename in which the simulation data for the GL problem has been stored, i.e. `simulation_solver-name_xx.csv` (it may takes a while depending on the number of iterations). 
    ```
    cd ../scripts
-   python csv_plotter.py algorithm_test_name.csv
+   python csv_plotter.py test-name_algorithm-name_threads-num.csv
+   python csv_scaling.py [strongsingle | speedup]
+   python csv_animation.py simulation_algorithm-name_1.csv
    ```
+   All the plots are stored in the `/plots` folder.
+   NB: we choose to have different scripts since each of them manages data in a different way: the first takes a single file, the second aggregates more files data, and the last manages files to produce an animation.
 
 ## Documentation
 The full documentation is available [here](). TODO: add link to docs
