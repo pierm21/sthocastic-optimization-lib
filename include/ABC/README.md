@@ -33,10 +33,11 @@ x_{ij}, & \text{otherwise}.
 - `Onlooker Bee Phase`: Onlooker bees select new food sources to be followed, based on their probability $p_i$, which is proportional to the fitness of the food source.
 
 $$
-p_i = \begin{cases} 
-0.5 + \left( \frac{\text{fitness}_i}{\sum_{j=1}^{n} \text{fitness}_j} \right) \times 0.5, & \text{if solution is feasible} \\[12pt]
-\left( \frac{1 - \text{violation}_i}{\sum_{j=1}^{n} \text{violation}_j} \right) \times 0.5. & \text{otherwise}
-\end{cases}$$
+p_i = \begin{cases}
+  0.5 + \frac{fitness_i}{\sum\limits_{j=1}^{n} fitness_j} \times 0.5 & \text{if feasible} \\
+  \left( 1 - \frac{violation_i}{\sum\limits_{j=1}^{n} (violation_j)} \right) \times 0.5 & \text{otherwise}
+\end{cases}
+$$
 
 - `Scout Bee Phase`: If a food source cannot be improved further, it is abandoned, and a scout bee randomly searches for a new food source, meaning that the bee is reinitialized.
 - `Termination`: The process repeats until a stopping criterion (maximum number of iterations or acceptable solution quality) is met.
@@ -59,11 +60,12 @@ The `ABC` class provides methods for the **serial** and the **parallel** impleme
  
 In the parallel version of the ABC algorithm, the entire colony of bees is divided equally among the available processors. This parallel implementation is designed for shared memory architectures and has been developed according to what proposed [here](https://ieeexplore.ieee.org/document/5393726), in fact some modifications with respect to the classical algorithm are needed in order to parallelize it. 
 
-In particular, each thread handles a subset of the total bee's colony and operate completely on it, neglecting what is done by the other threads.
+In particular, each thread handles a subset of the total bee's colony and operate completely on it, neglecting what is done by the other threads. This rearrangement of the logic of the classical version ABC algorithm, allows not to have significant overhead due to synchronization in the parallel implementation.
 
-A final reduction, selecting the best bee among all the local colonies, will determine the global result.
+In fact, just a final reduction at the end of the optimize process is needed. It allows to select the best bee among all the local colonies and will determine the global result.
 
-TODO: MPI parallelism
+The MPI parallelization has been performed exploiting the same algorithmic idea. The global colony is divided among different MPI processes, each one operating independetly from the other one, and a custom MPI reduction based on the feasibility rule has been implemented in order to find, at the end of the optimize process, the global optimal solution.
+
 
 
 ## Tests and Results
