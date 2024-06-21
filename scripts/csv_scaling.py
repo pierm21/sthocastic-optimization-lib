@@ -23,7 +23,7 @@ def extract_thread(filepath):
 # If no filename passed, exit
 if len(sys.argv) < 2:
 	print("Please provide the required plot as an argument.")
-	print("Only files in the output folder can be plotted.")
+	print("Only strongsingle and speedup plots are supported.")
 	exit()
 
 # Find the path of CSV file and plots output folder
