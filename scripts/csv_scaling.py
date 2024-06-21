@@ -103,7 +103,7 @@ if "strongsingle" in sys.argv[1]:
 if "speedup" in sys.argv[1]:
 	print("Plotting parallel speedup for all solvers")
 	for time_type in ("Parallel_time",):
-		fig, ax = plt.subplots()
+		fig, ax = plt.subplots(figsize=(8, 6))
 		for opt in opt_types:
 			df = df_tnp[opt]
 			# Sort the data by the number of processes
