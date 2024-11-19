@@ -12,9 +12,6 @@ Each of the implemented algorithms has its own ```README.md``` file in order to 
   - The ABC algorithm is inspired by the foraging behavior of honey bees. It simulates the intelligent food searching behavior of a honey bee swarm.
   - Constrained optimization available with a constraint handling technique based on the **feasibility-based rule**.
   - Thread-level OpenMP plus Process-level MPI parallelization available.
-- **THIRD ALGORITHM**
-  - Brief description
-  - Constrained opt provided / not provided
 
 ## Common interface
 All the provided algorithms shares the same standard public interface. The user can use the same sequence of method calls to solve a given problem, indipendently from the choosen algorithm.
@@ -28,11 +25,6 @@ The `Problem` class describes an optimization problem to be optimized. The user 
 - `add_inequality_constraint` to add an inequality constraint $f$ as `std::function` (or any cast compatible type) s.t. $f(\vec{x})\le0$
 
 The `Optimizer` abstract class describes the interface for a specific optimizer implementation. The user needs to instantiate an object of the preferred algorithm passing the Problem as parameter.
-
-The following code implements a possible basic usage of an optimizer.
-```
-TODO: sample code
-```
 
 ## Requirements
 - CMake
@@ -77,9 +69,6 @@ NB: Eigen 3.3 can be loaded using [mk modules](https://github.com/pcafrica/mk) o
    ```
    All the plots are stored in the `/plots` folder.
    NB: we choose to have different scripts since each of them manages data in a different way: the first takes a single file, the second aggregates more files data, and the last manages files to produce an animation.
-
-## Documentation
-The full documentation is available [here](). TODO: add link to docs
 
 ## Authors
 - Pierpaolo Marzo
