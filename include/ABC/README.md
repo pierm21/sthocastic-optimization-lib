@@ -75,7 +75,7 @@ This test optimizes a test function defined in the `test_problem` definte with t
 
 In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 20 particles and 6k iterations are performed.
 <p align="center">
-<img src= "https://github.com/AMSC22-23/stochastic-optimization-lib/assets/131521380/50532e2d-fb53-4396-9443-cb74cb50fb03)" height="500"> 
+<img src= "https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/abc_optimize_G10(1).png" height="500"> 
 </p>
 
 
@@ -93,12 +93,12 @@ This test optimizes several time a given test function varying only the number o
 
 
 
-This result shows a parallel speedup around ........running on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
+This result shows a parallel speedup which increases with the dimension of the problem, reaching a maximum of around 10×, running on an Intel Core i7-13700H machine  (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. The scalability of this implementation is linear with respect to the number of available cores.
 
 The data collected for many number of threads enable the possiblity to do a strong scaling study. Using the huge G10 test problem and 5000 iterations to have better results, the following results have been collected.
 
 <p align="center">
-<img src= "https://github.com/AMSC22-23/stochastic-optimization-lib/assets/131521380/e0c36c05-4223-4a8f-aeee-5187f607cbbc)" height="500"> 
+<img src= "https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/time_numparticles_abc_20(1).png" height="500"> 
 </p>
 
 We note an almost optimal behaviour with high dimension problems and a small number of threads (up to 4). A generale small deterioration is experienced between 4 and 8 threads, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability. Overall, for computations that lasts for less than 5 seconds it is possible to observe only small improvements from multithreading. This data has been collected running the tests in the MOX cluster, on up to 16 physical cores. 
