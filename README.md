@@ -21,8 +21,8 @@ Custom parameters are preferred when solving specific and/or hard optimization p
 
 The `Problem` class describes an optimization problem to be optimized. The user needs to instantiate a ```Problem``` object and set the space dimension in which it belongs, its fitness function, constraits, and bounds. It provides the following interface to build a problem:
 - `Constructor` to provide: fitness function as `std::function`, lower bounds and upper bounds both as `Eigen::Matrix<double, dim, 1>` where `dim` is the seach space dimension.
-- `add_equality_constraint` to add an equality constraint $f$ as `std::function` (or any cast compatible type) s.t. f($\vec{x}$)=0
-- `add_inequality_constraint` to add an inequality constraint $f$ as `std::function` (or any cast compatible type) s.t. f($\vec{x}$) <= 0
+- `add_equality_constraint` to add an equality constraint $f$ as `std::function` (or any cast compatible type) s.t. `f(x)=0`
+- `add_inequality_constraint` to add an inequality constraint $f$ as `std::function` (or any cast compatible type) s.t. `f(x) <= 0`
 
 The `Optimizer` abstract class describes the interface for a specific optimizer implementation. The user needs to instantiate an object of the preferred algorithm passing the Problem as parameter.
 
