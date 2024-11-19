@@ -49,7 +49,7 @@ This test optimizes the test function setted in the `test_problem` define with t
 
 In the results below the G10 test problem in a 8D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
 <p align="center">
-  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/f502d6f7-2b0f-4466-9eb8-18ac88ddd05b" height="500">
+  <img src="https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/saspso_optimize_G10.png" height="500">
 </p>
 
 This plot highlights the policy to select the best among two particles that SASPSO 2011 utilizes:
@@ -65,7 +65,7 @@ This test optimizes a given problem problem using the SASPSO 2011 algorithm usin
 In the results below the Gomez-Levy test problem in a 2D space is optimized. The swarm is composed by 5000 particles and 14k iterations are performed.
 
 <p align="center">
-  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/0a5ea6e3-35a2-497a-b646-4701c670e42a" height="500">
+  <img src="https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/saspso_static_adaptive_GL.png" height="500">
 </p>
 
 NB: Small differences can derive from the intrinsic randomness of this algorithm. Note also that the constraint violation converges in few iterations to zero since the serach space have bigger feasibility areas than the one used before.
@@ -76,14 +76,14 @@ This plot shows that the parameter adaptivity feature of this implementation pro
 This test optimizes several time a given test function varying only the number of particles. The optimization is done both serially and in parallel logging the execution time in order to compute the parallel speedup. The test stores in the `output/time_numparticles_saspso_threadnum.csv` files all the logged execution time as function of the swarm size.
 
 <p align="center">
-  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/cafccff2-9dda-4cea-8fbc-23a11b0fd172" height="500">
+  <img src="https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/saspso_time_numparticles_20(1).png" height="500">
 </p>
 
 This result shows a parallel speedup around $9.25\times$ running locally on an Intel Core i7-13700H machine (20 logical threads, 8 performance + 4 power efficient cores). The limited speedup is due to the non trivial synchronization between OpenMP threads needed at each iteration. Of course we must also consider the architecture of the processor, having not homogeneous cores. A better scalability study is provided below.
 
 The data collected for many number of threads enable the possiblity to do a strong scaling study. Using the huge G10 test problem and 5000 iterations to have better results, the following results have been collected.
 <p align="center">
-  <img src="https://github.com/AMSC22-23/stochastic-optimization-lib/assets/48312863/b73fe949-ba11-4862-b6a3-9ecc5dc7d9f1" height="500">
+  <img src="https://github.com/pierm21/sthocastic-optimization-lib/blob/main/figure/strong_saspso.png" height="500">
 </p>
 We note a suboptimal behaviour expecially for smaller swarms and for higher number of threads (bottom-right area) as expected. The synchronization overhead is not negligible and have a stronger impact when execution time is quite low. For bigger problems, i.e. 1K and 2K particles, the solver shows an almost optimal behaviour up to 4 threads, then it experience a small deterioration, and finally from 8 to 16 threads it starts again to show almost optimal strong scalability. Overall, for computations that lasts for less than 5 seconds it is possible to observe only small improvements from multithreading.
 This data has been collected running the tests in the MOX cluster, on up to 16 physical cores.
